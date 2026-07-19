@@ -8,236 +8,84 @@
 <meta name="apple-mobile-web-app-title" content="Oort Agro">
 <meta name="theme-color" content="#0f2027">
 <title>OORT TECNOLOGIAS – Estações-Sonda AgroMeteorológicas</title>
+<link rel="icon" type="image/png" href="https://raw.githubusercontent.com/oortbrasil/assets/main/icon.png">
 <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/oortbrasil/assets/main/icon.png">
-
 <style>
-  :root {
-    --bg:        #0f2027;
-    --surface:   #1a3040;
-    --card:      #162535;
-    --border:    #1e3a4f;
-    --accent:    #00d4a0;
-    --accent2:   #00a8cc;
-    --warn:      #f0a500;
-    --danger:    #e05c5c;
-    --text:      #e8f4f0;
-    --muted:     #6a8fa0;
-    --radius:    14px;
-    --safe-top:  env(safe-area-inset-top, 0px);
-    --safe-bot:  env(safe-area-inset-bottom, 0px);
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif;
-    min-height: 100dvh;
-    overflow-x: hidden;
-  }
-
-  /* ── Header ──────────────────────────────────────────── */
-  .header {
-    background: linear-gradient(160deg, #0a1a10 0%, #0f2820 60%, #0f2027 100%);
-    padding: calc(var(--safe-top) + 12px) 16px 12px;
-    border-bottom: 1px solid #1a3a2a;
-  }
-
-  .header-logo-wrap {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 8px 0 10px;
-  }
-
-  .header-logo-wrap img {
-    max-height: 110px;
-    max-width: 88%;
-    object-fit: contain;
-  }
-
-  .header-sub {
-    text-align: center;
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 0.4px;
-    margin-bottom: 6px;
-  }
-
-  .header-bottom {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-  }
-
-  .header-time {
-    font-size: 11px;
-    color: var(--accent);
-    font-variant-numeric: tabular-nums;
-    flex-shrink: 0;
-  }
-
-  /* ── Filtro de período ────────────────────────────────── */
-  .period-tabs {
-    display: flex;
-    gap: 6px;
-    background: var(--surface);
-    border-radius: 10px;
-    padding: 3px;
-    flex: 1;
-    max-width: 280px;
-  }
-  .period-tab {
-    flex: 1;
-    text-align: center;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 5px 0;
-    border-radius: 8px;
-    color: var(--muted);
-    cursor: pointer;
-    transition: all 0.2s;
-    user-select: none;
-    -webkit-user-select: none;
-  }
-  .period-tab.active {
-    background: var(--accent);
-    color: #0f2027;
-  }
-
-  /* ── Controles ───────────────────────────────────────── */
-  .controls {
-    padding: 12px 16px 6px;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: flex-end;
-  }
-  .control-group { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 130px; }
-  .control-group label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; }
-
-  select {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 10px 12px;
-    border-radius: 10px;
-    font-size: 14px;
-    width: 100%;
-    appearance: none;
-    -webkit-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a8fa0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    padding-right: 32px;
-  }
-  select:focus { outline: none; border-color: var(--accent); }
-
-  .btn-refresh {
-    background: var(--accent);
-    color: #0f2027;
-    border: none;
-    border-radius: 10px;
-    padding: 10px 16px;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    flex-shrink: 0;
-    align-self: flex-end;
-  }
-  .btn-refresh:active { opacity: 0.8; }
-
-  /* ── Cards de resumo ─────────────────────────────────── */
-  .summary {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    padding: 8px 16px 4px;
-  }
-  .summary-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px;
-  }
-  .summary-card .s-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  .summary-card .s-value { font-size: 26px; font-weight: 700; letter-spacing: -1px; margin-top: 4px; line-height: 1; }
-  .summary-card .s-unit  { font-size: 13px; font-weight: 400; color: var(--muted); }
-  .summary-card .s-range { font-size: 11px; color: var(--muted); margin-top: 6px; }
-  .s-temp  { color: #ff7e5f; }
-  .s-umi   { color: var(--accent2); }
-  .s-chuva { color: var(--accent); }
-  .s-vento { color: #b8a0ff; }
-
-  /* ── Gráficos ─────────────────────────────────────────── */
-  .charts { padding: 8px 16px; }
-  .chart-section { margin-bottom: 16px; }
-
-  .section-label {
-    font-size: 11px; color: var(--muted);
-    text-transform: uppercase; letter-spacing: 0.8px;
-    margin-bottom: 8px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-
-  .chart-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px 12px 8px;
-    margin-bottom: 10px;
-  }
-  .chart-title {
-    font-size: 12px; color: var(--muted);
-    margin-bottom: 10px;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .chart-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  canvas { display: block; width: 100% !important; max-height: 180px; }
-
-  /* ── Chuva barras ────────────────────────────────────── */
-  .rain-bars {
-    display: flex; gap: 3px; align-items: flex-end;
-    height: 110px; padding-bottom: 20px; position: relative;
-  }
-  .rain-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; height: 100%; justify-content: flex-end; }
-  .rain-bar { width: 100%; background: var(--accent); border-radius: 3px 3px 0 0; min-height: 2px; }
-  .rain-val { font-size: 8px; color: var(--accent); font-weight: 600; white-space: nowrap; }
-  .rain-label { font-size: 9px; color: var(--muted); white-space: nowrap; }
-  .rain-axis { position: absolute; bottom: 0; left: 0; right: 0; border-top: 1px solid var(--border); }
-
-  /* ── Bateria ──────────────────────────────────────────── */
-  .bat-indicator { display: flex; align-items: center; gap: 12px; padding: 4px 0; }
-  .bat-bar-bg { flex: 1; height: 20px; background: var(--surface); border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
-  .bat-bar-fill { height: 100%; border-radius: 5px; transition: width 0.6s ease; }
-  .bat-val { font-size: 20px; font-weight: 700; min-width: 54px; text-align: right; }
-
-  /* ── IAQ/UV gauge ────────────────────────────────────── */
-  .gauge-row { display: flex; gap: 10px; }
-  .gauge-item { flex: 1; text-align: center; padding: 12px 8px; background: var(--surface); border-radius: 10px; }
-  .gauge-num { font-size: 28px; font-weight: 700; letter-spacing: -1px; }
-  .gauge-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
-  .gauge-badge { display: inline-block; margin-top: 6px; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
-
-  /* ── Solo ─────────────────────────────────────────────── */
-  .solo-row { display: flex; gap: 10px; margin-top: 4px; }
-  .solo-card { flex: 1; background: var(--surface); border-radius: 10px; padding: 12px; text-align: center; }
-  .solo-val { font-size: 24px; font-weight: 700; }
-  .solo-lbl { font-size: 10px; color: var(--muted); margin-top: 2px; }
-
-  /* ── Estado vazio / erro ─────────────────────────────── */
-  .state-msg { text-align: center; padding: 48px 20px; color: var(--muted); font-size: 14px; }
-  .state-msg .icon { font-size: 36px; margin-bottom: 12px; }
-  .state-msg p { line-height: 1.5; }
-
-  .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 12px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* ── Footer ───────────────────────────────────────────── */
-  .footer { padding: 20px 16px calc(var(--safe-bot) + 20px); text-align: center; font-size: 11px; color: var(--muted); }
+:root{--bg:#0f2027;--surface:#1a3040;--card:#162535;--border:#1e3a4f;--accent:#00d4a0;--accent2:#00a8cc;--text:#e8f4f0;--muted:#6a8fa0;--radius:14px;--safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;min-height:100dvh;overflow-x:hidden}
+.header{background:linear-gradient(160deg,#0a1a10 0%,#0f2820 60%,#0f2027 100%);padding:calc(var(--safe-top) + 12px) 16px 12px;border-bottom:1px solid #1a3a2a;position:sticky;top:0;z-index:100}
+.header-logo-wrap{display:flex;justify-content:center;align-items:center;padding:8px 0 10px}
+.header-logo-wrap img{max-height:110px;max-width:88%;object-fit:contain}
+.header-sub{text-align:center;font-size:11px;color:var(--muted);letter-spacing:.4px;margin-bottom:8px}
+.header-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.header-time{font-size:11px;color:var(--accent);font-variant-numeric:tabular-nums;flex-shrink:0}
+.period-tabs{display:flex;gap:6px;background:var(--surface);border-radius:10px;padding:3px;flex:1;max-width:280px}
+.period-tab{flex:1;text-align:center;font-size:12px;font-weight:600;padding:5px 0;border-radius:8px;color:var(--muted);cursor:pointer;transition:all .2s;user-select:none;-webkit-user-select:none}
+.period-tab.active{background:var(--accent);color:#0f2027}
+.main-nav{display:flex;border-bottom:1px solid var(--border);background:var(--surface)}
+.main-nav-tab{flex:1;text-align:center;padding:12px 8px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;user-select:none;-webkit-user-select:none}
+.main-nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.controls{padding:12px 16px 6px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.control-group{display:flex;flex-direction:column;gap:4px;flex:1;min-width:130px}
+.control-group label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+select{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:10px;font-size:14px;width:100%;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a8fa0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+select:focus{outline:none;border-color:var(--accent)}
+.btn-refresh{background:var(--accent);color:#0f2027;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;align-self:flex-end}
+.btn-refresh:active{opacity:.8}
+.ultima-leitura{margin:0 16px 6px;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:10px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.ultima-leitura .ul-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.ultima-leitura.stale .ul-dot{background:#f0a500}
+.ultima-leitura.offline .ul-dot{background:#e05c5c}
+.summary{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:8px 16px 4px}
+.summary-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.summary-card .s-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.summary-card .s-value{font-size:26px;font-weight:700;letter-spacing:-1px;margin-top:4px;line-height:1}
+.summary-card .s-unit{font-size:13px;font-weight:400;color:var(--muted)}
+.summary-card .s-range{font-size:11px;color:var(--muted);margin-top:6px}
+.s-temp{color:#ff7e5f}.s-umi{color:var(--accent2)}.s-chuva{color:var(--accent)}.s-vento{color:#b8a0ff}
+.charts{padding:8px 16px}.chart-section{margin-bottom:16px}
+.section-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 12px 8px;margin-bottom:10px}
+.chart-title{font-size:12px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.chart-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+canvas{display:block;width:100%!important;max-height:180px}
+.rain-bars{display:flex;gap:3px;align-items:flex-end;height:110px;padding-bottom:20px;position:relative}
+.rain-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;height:100%;justify-content:flex-end}
+.rain-bar{width:100%;background:var(--accent);border-radius:3px 3px 0 0;min-height:2px}
+.rain-val{font-size:8px;color:var(--accent);font-weight:600;white-space:nowrap}
+.rain-label{font-size:9px;color:var(--muted);white-space:nowrap}
+.rain-axis{position:absolute;bottom:0;left:0;right:0;border-top:1px solid var(--border)}
+.bat-indicator{display:flex;align-items:center;gap:12px;padding:4px 0}
+.bat-bar-bg{flex:1;height:20px;background:var(--surface);border-radius:6px;overflow:hidden;border:1px solid var(--border)}
+.bat-bar-fill{height:100%;border-radius:5px;transition:width .6s ease}
+.bat-val{font-size:20px;font-weight:700;min-width:54px;text-align:right}
+.gauge-row{display:flex;gap:10px}
+.gauge-item{flex:1;text-align:center;padding:12px 8px;background:var(--surface);border-radius:10px}
+.gauge-num{font-size:28px;font-weight:700;letter-spacing:-1px}
+.gauge-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.gauge-badge{display:inline-block;margin-top:6px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px}
+.solo-row{display:flex;gap:10px;margin-top:4px}
+.solo-card{flex:1;background:var(--surface);border-radius:10px;padding:12px;text-align:center}
+.solo-val{font-size:24px;font-weight:700}
+.solo-lbl{font-size:10px;color:var(--muted);margin-top:2px}
+.relatorios-list{padding:12px 16px}
+.rel-item{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;cursor:pointer;text-decoration:none;color:var(--text);transition:border-color .2s}
+.rel-item:active{border-color:var(--accent)}
+.rel-icon{font-size:28px;flex-shrink:0}
+.rel-info{flex:1;min-width:0}
+.rel-nome{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rel-open{font-size:11px;color:var(--accent);margin-top:3px}
+.rel-arrow{color:var(--muted);font-size:16px;flex-shrink:0}
+.state-msg{text-align:center;padding:48px 20px;color:var(--muted);font-size:14px}
+.state-msg .icon{font-size:36px;margin-bottom:12px}
+.state-msg p{line-height:1.5}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.footer{padding:20px 16px calc(var(--safe-bot) + 20px);text-align:center;font-size:11px;color:var(--muted)}
+.sec{display:none}.sec.on{display:block}
+.period-ctrl{display:none}.period-ctrl.on{display:flex}
 </style>
 </head>
 <body>
@@ -248,35 +96,45 @@
   </div>
   <div class="header-sub">Estações-Sonda AgroMeteorológicas</div>
   <div class="header-bottom">
-    <div class="period-tabs">
-      <div class="period-tab active" data-p="hoje" onclick="setPeriodo('hoje', this)">Dia</div>
-      <div class="period-tab" data-p="7d" onclick="setPeriodo('7d', this)">7 dias</div>
-      <div class="period-tab" data-p="mes" onclick="setPeriodo('mes', this)">Mês</div>
+    <div class="period-tabs" id="period-tabs">
+      <div class="period-tab active" onclick="setPeriodo('hoje',this)">Dia</div>
+      <div class="period-tab" onclick="setPeriodo('7d',this)">7 dias</div>
+      <div class="period-tab" onclick="setPeriodo('mes',this)">Mês</div>
     </div>
     <div class="header-time" id="clock">--:--</div>
   </div>
 </div>
 
+<div class="main-nav">
+  <div class="main-nav-tab active" onclick="setAba('dados',this)">📊 Dados</div>
+  <div class="main-nav-tab" onclick="setAba('relatorios',this)">📄 Relatórios</div>
+</div>
+
 <div class="controls">
   <div class="control-group">
     <label>Estação</label>
-    <select id="sel-estacao" onchange="onEstacaoChange()">
-      <option value="">Carregando…</option>
-    </select>
+    <select id="sel-estacao" onchange="onEstacaoChange()"><option value="">Carregando…</option></select>
   </div>
-  <div class="control-group">
+  <div class="control-group" id="ctrl-planilha">
     <label>Período</label>
-    <select id="sel-planilha" onchange="carregarDados()">
-      <option value="">—</option>
-    </select>
+    <select id="sel-planilha" onchange="carregarDados()"><option value="">—</option></select>
   </div>
-  <button class="btn-refresh" onclick="carregarDados()">↻</button>
+  <button class="btn-refresh" id="btn-refresh" onclick="carregarDados()">↻</button>
 </div>
 
-<div id="app-body">
-  <div class="state-msg">
-    <div class="spinner"></div>
-    <p>Conectando às estações…</p>
+<div class="ultima-leitura" id="ultima-leitura" style="display:none">
+  <span class="ul-dot"></span><span id="ul-texto">—</span>
+</div>
+
+<div class="sec on" id="sec-dados">
+  <div id="app-body">
+    <div class="state-msg"><div class="spinner"></div><p>Conectando às estações…</p></div>
+  </div>
+</div>
+
+<div class="sec" id="sec-relatorios">
+  <div class="relatorios-list" id="rel-body">
+    <div class="state-msg"><div class="spinner"></div><p>Carregando relatórios…</p></div>
   </div>
 </div>
 
@@ -284,375 +142,231 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbztgm_QeJl2nlnT6sK7XG3PfLxI-5XPhC17Ol5hV2bDKTyjdaKN6tbSGi4Cudp3hB7o8w/exec';
+const API='https://script.google.com/macros/s/AKfycbztgm_QeJl2nlnT6sK7XG3PfLxI-5XPhC17Ol5hV2bDKTyjdaKN6tbSGi4Cudp3hB7o8w/exec';
+let dadosAtivos=[],periodoAtivo='hoje',abaAtiva='dados',chartInstances=[],estacaoAtual='';
 
-let dadosAtivos    = [];
-let periodoAtivo   = 'hoje';
-let chartInstances = [];
+function atualizarClock(){document.getElementById('clock').textContent=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
+setInterval(atualizarClock,1000);atualizarClock();
 
-// ── Relógio ───────────────────────────────────────────────
-function atualizarClock() {
-  document.getElementById('clock').textContent =
-    new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-}
-setInterval(atualizarClock, 1000);
-atualizarClock();
-
-// ── Filtro de período ─────────────────────────────────────
-function setPeriodo(p, el) {
-  periodoAtivo = p;
-  document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
+function setAba(aba,el){
+  abaAtiva=aba;
+  document.querySelectorAll('.main-nav-tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  if (dadosAtivos.length) {
-    const filtrado = filtrarPorPeriodo(dadosAtivos);
-    destroyCharts();
-    if (!filtrado.length) mostrarVazio('Sem dados para este intervalo. Tente outro filtro.');
-    else renderizar(filtrado);
-  }
+  document.getElementById('sec-dados').classList.toggle('on',aba==='dados');
+  document.getElementById('sec-relatorios').classList.toggle('on',aba==='relatorios');
+  document.getElementById('ctrl-planilha').style.display=aba==='dados'?'':'none';
+  document.getElementById('btn-refresh').style.display=aba==='dados'?'':'none';
+  document.getElementById('period-tabs').style.display=aba==='dados'?'':'none';
+  if(aba==='relatorios'&&estacaoAtual)carregarRelatorios();
 }
 
-function filtrarPorPeriodo(dados) {
-  if (!dados.length) return dados;
-
-  // Referência = data do ÚLTIMO registro (funciona para meses passados)
-  const ultimaData = new Date(dados[dados.length - 1].Date);
-
-  if (periodoAtivo === 'hoje') {
-    const diaRef = ultimaData.toISOString().slice(0, 10);
-    return dados.filter(d => d.Date && String(d.Date).slice(0, 10) === diaRef);
-  }
-  if (periodoAtivo === '7d') {
-    const limite = new Date(ultimaData);
-    limite.setDate(limite.getDate() - 7);
-    return dados.filter(d => d.Date && new Date(d.Date) >= limite);
-  }
-  return dados; // 'mes' = tudo
+function setPeriodo(p,el){
+  periodoAtivo=p;
+  document.querySelectorAll('.period-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  if(dadosAtivos.length){const f=filtrar(dadosAtivos);destroyCharts();if(!f.length)mostrarVazio('Sem dados. Tente outro filtro.');else renderizar(f);}
 }
 
-// ── Inicialização ─────────────────────────────────────────
-async function init() {
-  try {
-    const res  = await fetch(API + '?action=estacoes');
-    const json = await res.json();
-    if (!json.ok) throw new Error(json.erro);
+function filtrar(dados){
+  if(!dados.length)return dados;
+  const ult=new Date(dados[dados.length-1].Date);
+  if(periodoAtivo==='hoje'){const d=ult.toISOString().slice(0,10);return dados.filter(x=>String(x.Date).slice(0,10)===d);}
+  if(periodoAtivo==='7d'){const lim=new Date(ult);lim.setDate(lim.getDate()-7);return dados.filter(x=>new Date(x.Date)>=lim);}
+  return dados;
+}
 
-    const sel = document.getElementById('sel-estacao');
-    sel.innerHTML = json.estacoes.map(e =>
-      '<option value="' + e.nome + '">' + e.codigo + '</option>'
+async function init(){
+  try{
+    const r=await fetch(API+'?action=estacoes');
+    const d=await r.json();
+    if(!d.ok)throw new Error(d.erro);
+    const sel=document.getElementById('sel-estacao');
+    sel.innerHTML=d.estacoes.map(e=>'<option value="'+e.nome+'">'+e.codigo+'</option>').join('');
+    if(d.estacoes.length)await onEstacaoChange();
+  }catch(err){mostrarErro('Não foi possível conectar.<br><small>'+err.message+'</small>');}
+}
+
+async function onEstacaoChange(){
+  estacaoAtual=document.getElementById('sel-estacao').value;
+  if(!estacaoAtual)return;
+  atualizarUltimaLeitura(estacaoAtual);
+  if(abaAtiva==='relatorios'){carregarRelatorios();return;}
+  try{
+    const r=await fetch(API+'?action=planilhas&estacao='+encodeURIComponent(estacaoAtual));
+    const d=await r.json();
+    if(!d.ok)throw new Error(d.erro);
+    const sel=document.getElementById('sel-planilha');
+    sel.innerHTML=d.planilhas.map(p=>'<option value="'+p.nome+'">'+formatarPeriodo(p.nome)+'</option>').join('');
+    if(d.planilhas.length)await carregarDados();
+    else mostrarVazio('Nenhuma planilha encontrada.');
+  }catch(err){mostrarErro('Erro: '+err.message);}
+}
+
+async function atualizarUltimaLeitura(estacao){
+  const el=document.getElementById('ultima-leitura');
+  const tx=document.getElementById('ul-texto');
+  el.style.display='flex';
+  tx.textContent='Verificando última leitura…';
+  try{
+    const r=await fetch(API+'?action=ultima_leitura&estacao='+encodeURIComponent(estacao));
+    const d=await r.json();
+    if(!d.ok||!d.data){tx.textContent='Sem dados registrados';return;}
+    const dt=new Date(d.data.replace(' ','T')+'-03:00');
+    const diff=Math.round((new Date()-dt)/60000);
+    let status='',label='Última leitura: '+d.data;
+    if(diff>60){status='stale';label+=' ('+diff+' min atrás)';}
+    if(diff>180){status='offline';label+=' ⚠️';}
+    el.className='ultima-leitura '+status;
+    tx.textContent=label;
+  }catch(e){tx.textContent='Erro ao verificar leitura';}
+}
+
+async function carregarDados(){
+  const est=document.getElementById('sel-estacao').value;
+  const plan=document.getElementById('sel-planilha').value;
+  if(!est||!plan)return;
+  mostrarLoading();destroyCharts();
+  try{
+    const r=await fetch(API+'?action=dados&estacao='+encodeURIComponent(est)+'&planilha='+encodeURIComponent(plan));
+    const d=await r.json();
+    if(!d.ok)throw new Error(d.erro);
+    if(!d.dados.length){mostrarVazio('Sem dados para este período.');return;}
+    dadosAtivos=d.dados;
+    const f=filtrar(dadosAtivos);
+    if(!f.length)mostrarVazio('Sem dados para este intervalo. Tente "7 dias" ou "Mês".');
+    else renderizar(f);
+  }catch(err){mostrarErro('Erro: '+err.message);}
+}
+
+async function carregarRelatorios(){
+  const rb=document.getElementById('rel-body');
+  rb.innerHTML='<div class="state-msg"><div class="spinner"></div><p>Carregando relatórios…</p></div>';
+  try{
+    const r=await fetch(API+'?action=relatorios&estacao='+encodeURIComponent(estacaoAtual));
+    const d=await r.json();
+    if(!d.ok)throw new Error(d.erro);
+    if(!d.relatorios.length){rb.innerHTML='<div class="state-msg"><div class="icon">📭</div><p>Nenhum relatório encontrado.</p></div>';return;}
+    rb.innerHTML=d.relatorios.map(rel=>
+      '<a class="rel-item" href="'+rel.url+'" target="_blank" rel="noopener">'+
+        '<div class="rel-icon">📄</div>'+
+        '<div class="rel-info"><div class="rel-nome">'+rel.nome+'</div><div class="rel-open">Toque para abrir o PDF</div></div>'+
+        '<div class="rel-arrow">›</div>'+
+      '</a>'
     ).join('');
-
-    if (json.estacoes.length) await onEstacaoChange();
-  } catch (err) {
-    mostrarErro('Não foi possível conectar.<br><small>' + err.message + '</small>');
-  }
+  }catch(err){rb.innerHTML='<div class="state-msg"><div class="icon">⚠️</div><p>Erro: '+err.message+'</p></div>';}
 }
 
-async function onEstacaoChange() {
-  const estacao = document.getElementById('sel-estacao').value;
-  if (!estacao) return;
-  try {
-    const res  = await fetch(API + '?action=planilhas&estacao=' + encodeURIComponent(estacao));
-    const json = await res.json();
-    if (!json.ok) throw new Error(json.erro);
+function renderizar(dados){
+  const body=document.getElementById('app-body');
+  const datas=dados.map(d=>new Date(d.Date));
+  const tempAr=dados.map(d=>parseFloat(d.TempAr));
+  const umiAr=dados.map(d=>parseFloat(d.UmiAr));
+  const press=dados.map(d=>parseFloat(d.Press));
+  const iaq=dados.map(d=>parseFloat(d.IAQ));
+  const vento=dados.map(d=>parseFloat(d.Vento));
+  const temSolo=dados.map(d=>parseFloat(d.TemSolo));
+  const umiSolo=dados.map(d=>parseFloat(d.UmiSolo));
+  const last=dados[dados.length-1];
+  const pluviPorDia={};
+  dados.forEach(d=>{const dia=String(d.Date).slice(0,10);const v=parseFloat(d.Pluvi);if(!isNaN(v))pluviPorDia[dia]=v;});
+  const chuvaTotal=Object.values(pluviPorDia).reduce((a,b)=>a+b,0);
+  const tempOk=tempAr.filter(v=>!isNaN(v));
+  const umiOk=umiAr.filter(v=>!isNaN(v));
+  const ventoOk=vento.filter(v=>!isNaN(v));
 
-    const sel = document.getElementById('sel-planilha');
-    sel.innerHTML = json.planilhas.map(p =>
-      '<option value="' + p.nome + '">' + formatarPeriodo(p.nome) + '</option>'
-    ).join('');
-
-    if (json.planilhas.length) await carregarDados();
-    else mostrarVazio('Nenhuma planilha encontrada para esta estação.');
-  } catch (err) {
-    mostrarErro('Erro ao listar períodos: ' + err.message);
-  }
-}
-
-async function carregarDados() {
-  const estacao  = document.getElementById('sel-estacao').value;
-  const planilha = document.getElementById('sel-planilha').value;
-  if (!estacao || !planilha) return;
-
-  mostrarLoading();
-  destroyCharts();
-
-  try {
-    const res  = await fetch(API + '?action=dados&estacao=' + encodeURIComponent(estacao) + '&planilha=' + encodeURIComponent(planilha));
-    const json = await res.json();
-    if (!json.ok) throw new Error(json.erro);
-    if (!json.dados.length) { mostrarVazio('Sem dados para este período.'); return; }
-
-    dadosAtivos = json.dados;
-    const filtrado = filtrarPorPeriodo(dadosAtivos);
-    if (!filtrado.length) mostrarVazio('Sem dados para hoje. Tente "7 dias" ou "Mês".');
-    else renderizar(filtrado);
-  } catch (err) {
-    mostrarErro('Erro ao carregar dados: ' + err.message);
-  }
-}
-
-// ── Renderização principal ────────────────────────────────
-function renderizar(dados) {
-  const body = document.getElementById('app-body');
-
-  const datas   = dados.map(d => new Date(d.Date));
-  const tempAr  = dados.map(d => parseFloat(d.TempAr));
-  const umiAr   = dados.map(d => parseFloat(d.UmiAr));
-  const press   = dados.map(d => parseFloat(d.Press));
-  const iaq     = dados.map(d => parseFloat(d.IAQ));
-  const vento   = dados.map(d => parseFloat(d.Vento));
-  const temSolo = dados.map(d => parseFloat(d.TemSolo));
-  const umiSolo = dados.map(d => parseFloat(d.UmiSolo));
-
-  const last = dados[dados.length - 1];
-
-  // Chuva total = soma dos ÚLTIMOS valores de cada dia (Pluvi é acumulada por dia)
-  const pluviPorDia = {};
-  dados.forEach(d => {
-    const dia = String(d.Date).slice(0, 10);
-    const v = parseFloat(d.Pluvi);
-    if (!isNaN(v)) pluviPorDia[dia] = v;
-  });
-  const chuvaTotal = Object.values(pluviPorDia).reduce((a, b) => a + b, 0);
-
-  const tempOk  = tempAr.filter(v => !isNaN(v));
-  const umiOk   = umiAr.filter(v => !isNaN(v));
-  const ventoOk = vento.filter(v => !isNaN(v));
-
-  body.innerHTML =
-    '<div class="summary">' +
-      '<div class="summary-card">' +
-        '<div class="s-label">Temp. Ar</div>' +
-        '<div class="s-value s-temp">' + fmt(last.TempAr) + '<span class="s-unit">°C</span></div>' +
-        '<div class="s-range">↓' + (tempOk.length ? Math.min.apply(null, tempOk).toFixed(1) : '-') + ' ↑' + (tempOk.length ? Math.max.apply(null, tempOk).toFixed(1) : '-') + ' °C</div>' +
-      '</div>' +
-      '<div class="summary-card">' +
-        '<div class="s-label">Umidade Ar</div>' +
-        '<div class="s-value s-umi">' + fmt(last.UmiAr) + '<span class="s-unit">%</span></div>' +
-        '<div class="s-range">↓' + (umiOk.length ? Math.min.apply(null, umiOk).toFixed(0) : '-') + ' ↑' + (umiOk.length ? Math.max.apply(null, umiOk).toFixed(0) : '-') + ' %</div>' +
-      '</div>' +
-      '<div class="summary-card">' +
-        '<div class="s-label">Chuva Acum.</div>' +
-        '<div class="s-value s-chuva">' + chuvaTotal.toFixed(1) + '<span class="s-unit">mm</span></div>' +
-        '<div class="s-range">Período selecionado</div>' +
-      '</div>' +
-      '<div class="summary-card">' +
-        '<div class="s-label">Vento</div>' +
-        '<div class="s-value s-vento">' + fmt(last.Vento) + '<span class="s-unit">km/h</span></div>' +
-        '<div class="s-range">↑' + (ventoOk.length ? Math.max.apply(null, ventoOk).toFixed(1) : '-') + ' km/h pico</div>' +
-      '</div>' +
-    '</div>' +
-
-    '<div class="charts">' +
-      '<div class="chart-section">' +
-        '<div class="section-label">Atmosfera</div>' +
-        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#ff7e5f"></span>Temperatura do Ar (°C)</div><canvas id="c-temp"></canvas></div>' +
-        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#00a8cc"></span>Umidade do Ar (%)</div><canvas id="c-umi"></canvas></div>' +
-        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#c0a0ff"></span>Pressão Atmosférica (hPa)</div><canvas id="c-press"></canvas></div>' +
-      '</div>' +
-
-      '<div class="chart-section">' +
-        '<div class="section-label">Precipitação</div>' +
-        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#00d4a0"></span>Chuva (mm)</div><div class="rain-bars" id="rain-bars"></div></div>' +
-      '</div>' +
-
-      '<div class="chart-section">' +
-        '<div class="section-label">Qualidade &amp; Radiação</div>' +
-        '<div class="chart-card"><div class="gauge-row">' +
-          '<div class="gauge-item"><div class="gauge-num" style="color:#f0a500">' + fmt0(last.IAQ) + '</div><div class="gauge-sub">Índice IAQ</div><div class="gauge-badge" id="iaq-badge"></div></div>' +
-          '<div class="gauge-item"><div class="gauge-num" style="color:#ff9100">' + fmt1(last.UV) + '</div><div class="gauge-sub">Índice UV</div><div class="gauge-badge" id="uv-badge"></div></div>' +
-        '</div></div>' +
-        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#f0a500"></span>IAQ ao longo do período</div><canvas id="c-iaq"></canvas></div>' +
-      '</div>' +
-
-      '<div class="chart-section">' +
-        '<div class="section-label">Vento</div>' +
-        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#b8a0ff"></span>Velocidade do Vento (km/h)</div><canvas id="c-vento"></canvas></div>' +
-      '</div>' +
-
-      '<div class="chart-section">' +
-        '<div class="section-label">Solo</div>' +
-        '<div class="chart-card"><div class="chart-title">Leituras atuais</div><div class="solo-row">' +
-          '<div class="solo-card"><div class="solo-val" style="color:#c8a06a">' + fmt(last.TemSolo) + '°C</div><div class="solo-lbl">Temp. Solo</div></div>' +
-          '<div class="solo-card"><div class="solo-val" style="color:#4db8a0">' + fmt0(last.UmiSolo) + '%</div><div class="solo-lbl">Umidade Solo</div></div>' +
-        '</div></div>' +
-        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#c8a06a"></span>Temperatura e Umidade do Solo</div><canvas id="c-solo"></canvas></div>' +
-      '</div>' +
-
-      '<div class="chart-section">' +
-        '<div class="section-label">Sistema</div>' +
-        '<div class="chart-card"><div class="chart-title">Bateria</div><div class="bat-indicator">' +
-          '<div class="bat-bar-bg"><div class="bat-bar-fill" id="bat-fill" style="width:0%"></div></div>' +
-          '<div class="bat-val" id="bat-val">-</div>' +
-        '</div></div>' +
-      '</div>' +
+  body.innerHTML=
+    '<div class="summary">'+
+      '<div class="summary-card"><div class="s-label">Temp. Ar</div><div class="s-value s-temp">'+fmt(last.TempAr)+'<span class="s-unit">°C</span></div><div class="s-range">↓'+(tempOk.length?Math.min(...tempOk).toFixed(1):'-')+' ↑'+(tempOk.length?Math.max(...tempOk).toFixed(1):'-')+' °C</div></div>'+
+      '<div class="summary-card"><div class="s-label">Umidade Ar</div><div class="s-value s-umi">'+fmt(last.UmiAr)+'<span class="s-unit">%</span></div><div class="s-range">↓'+(umiOk.length?Math.min(...umiOk).toFixed(0):'-')+' ↑'+(umiOk.length?Math.max(...umiOk).toFixed(0):'-')+' %</div></div>'+
+      '<div class="summary-card"><div class="s-label">Chuva Acum.</div><div class="s-value s-chuva">'+chuvaTotal.toFixed(1)+'<span class="s-unit">mm</span></div><div class="s-range">Período selecionado</div></div>'+
+      '<div class="summary-card"><div class="s-label">Vento</div><div class="s-value s-vento">'+fmt(last.Vento)+'<span class="s-unit">km/h</span></div><div class="s-range">↑'+(ventoOk.length?Math.max(...ventoOk).toFixed(1):'-')+' km/h pico</div></div>'+
+    '</div>'+
+    '<div class="charts">'+
+      '<div class="chart-section"><div class="section-label">Atmosfera</div>'+
+        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#ff7e5f"></span>Temperatura do Ar (°C)</div><canvas id="c-temp"></canvas></div>'+
+        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#00a8cc"></span>Umidade do Ar (%)</div><canvas id="c-umi"></canvas></div>'+
+        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#c0a0ff"></span>Pressão Atmosférica (hPa)</div><canvas id="c-press"></canvas></div>'+
+      '</div>'+
+      '<div class="chart-section"><div class="section-label">Precipitação</div>'+
+        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#00d4a0"></span>Chuva (mm)</div><div class="rain-bars" id="rain-bars"></div></div>'+
+      '</div>'+
+      '<div class="chart-section"><div class="section-label">Qualidade &amp; Radiação</div>'+
+        '<div class="chart-card"><div class="gauge-row">'+
+          '<div class="gauge-item"><div class="gauge-num" style="color:#f0a500">'+fmt0(last.IAQ)+'</div><div class="gauge-sub">Índice IAQ</div><div class="gauge-badge" id="iaq-badge"></div></div>'+
+          '<div class="gauge-item"><div class="gauge-num" style="color:#ff9100">'+fmt1(last.UV)+'</div><div class="gauge-sub">Índice UV</div><div class="gauge-badge" id="uv-badge"></div></div>'+
+        '</div></div>'+
+        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#f0a500"></span>IAQ ao longo do período</div><canvas id="c-iaq"></canvas></div>'+
+      '</div>'+
+      '<div class="chart-section"><div class="section-label">Vento</div>'+
+        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#b8a0ff"></span>Velocidade do Vento (km/h)</div><canvas id="c-vento"></canvas></div>'+
+      '</div>'+
+      '<div class="chart-section"><div class="section-label">Solo</div>'+
+        '<div class="chart-card"><div class="chart-title">Leituras atuais</div><div class="solo-row">'+
+          '<div class="solo-card"><div class="solo-val" style="color:#c8a06a">'+fmt(last.TemSolo)+'°C</div><div class="solo-lbl">Temp. Solo</div></div>'+
+          '<div class="solo-card"><div class="solo-val" style="color:#4db8a0">'+fmt0(last.UmiSolo)+'%</div><div class="solo-lbl">Umidade Solo</div></div>'+
+        '</div></div>'+
+        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#c8a06a"></span>Temperatura e Umidade do Solo</div><canvas id="c-solo"></canvas></div>'+
+      '</div>'+
+      '<div class="chart-section"><div class="section-label">Sistema</div>'+
+        '<div class="chart-card"><div class="chart-title">Bateria</div><div class="bat-indicator">'+
+          '<div class="bat-bar-bg"><div class="bat-bar-fill" id="bat-fill" style="width:0%"></div></div>'+
+          '<div class="bat-val" id="bat-val">-</div>'+
+        '</div></div>'+
+      '</div>'+
     '</div>';
 
-  // ── Charts ──────────────────────────────────────────────
-  const opts = { tension: 0.3, pointRadius: 0, borderWidth: 1.8 };
+  const opts={tension:.3,pointRadius:0,borderWidth:1.8};
+  chartInstances.push(makeChart('c-temp',datas,[{label:'Temp Ar',data:tempAr,borderColor:'#ff7e5f',...opts}],'°C'));
+  chartInstances.push(makeChart('c-umi', datas,[{label:'Umidade',data:umiAr, borderColor:'#00a8cc',...opts}],'%'));
+  chartInstances.push(makeChart('c-press',datas,[{label:'Pressão',data:press, borderColor:'#c0a0ff',...opts}],'hPa'));
+  chartInstances.push(makeChart('c-iaq', datas,[{label:'IAQ',    data:iaq,   borderColor:'#f0a500',...opts}],''));
+  chartInstances.push(makeChart('c-vento',datas,[{label:'Vento', data:vento, borderColor:'#b8a0ff',fill:true,backgroundColor:'rgba(184,160,255,.08)',...opts}],'km/h'));
+  chartInstances.push(makeChart('c-solo',datas,[{label:'Temp Solo',data:temSolo,borderColor:'#c8a06a',yAxisID:'y',...opts},{label:'Umi Solo',data:umiSolo,borderColor:'#4db8a0',yAxisID:'y1',...opts}],'',true));
 
-  chartInstances.push(makeLineChart('c-temp', datas, [
-    { label: 'Temp Ar', data: tempAr, borderColor: '#ff7e5f', ...opts }
-  ], '°C'));
-
-  chartInstances.push(makeLineChart('c-umi', datas, [
-    { label: 'Umidade', data: umiAr, borderColor: '#00a8cc', ...opts }
-  ], '%'));
-
-  chartInstances.push(makeLineChart('c-press', datas, [
-    { label: 'Pressão', data: press, borderColor: '#c0a0ff', ...opts }
-  ], 'hPa'));
-
-  chartInstances.push(makeLineChart('c-iaq', datas, [
-    { label: 'IAQ', data: iaq, borderColor: '#f0a500', ...opts }
-  ], ''));
-
-  chartInstances.push(makeLineChart('c-vento', datas, [
-    { label: 'Vento', data: vento, borderColor: '#b8a0ff',
-      fill: true, backgroundColor: 'rgba(184,160,255,0.08)', ...opts }
-  ], 'km/h'));
-
-  chartInstances.push(makeLineChart('c-solo', datas, [
-    { label: 'Temp Solo', data: temSolo, borderColor: '#c8a06a', yAxisID: 'y', ...opts },
-    { label: 'Umi Solo',  data: umiSolo, borderColor: '#4db8a0', yAxisID: 'y1', ...opts }
-  ], '', true));
-
-  // ── Chuva: Pluvi é acumulada ao longo do dia ─────────────
-  // Total diário = ÚLTIMO valor registrado de cada dia
-  const chuvaByKey = {};
-  dados.forEach(d => {
-    const key = periodoAtivo === 'hoje'
-      ? new Date(d.Date).getHours() + 'h'
-      : new Date(d.Date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-    const v = parseFloat(d.Pluvi);
-    if (!isNaN(v)) chuvaByKey[key] = v; // sobrescreve: fica o último do dia/hora
+  const chuvaByKey={};
+  dados.forEach(d=>{
+    const key=periodoAtivo==='hoje'?new Date(d.Date).getHours()+'h':new Date(d.Date).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+    const v=parseFloat(d.Pluvi);if(!isNaN(v))chuvaByKey[key]=v;
   });
-  const keys     = Object.keys(chuvaByKey);
-  const maxChuva = Math.max.apply(null, Object.values(chuvaByKey).concat([1]));
-  const rainEl   = document.getElementById('rain-bars');
-  const mostrar  = keys.slice(-24);
-  rainEl.innerHTML = mostrar.map(k => {
-    const val = chuvaByKey[k];
-    const pct = (val / maxChuva) * 100;
-    const valLabel = val > 0 ? '<div class="rain-val">' + val.toFixed(1) + '</div>' : '<div class="rain-val">&nbsp;</div>';
-    return '<div class="rain-bar-wrap">' + valLabel + '<div class="rain-bar" style="height:' + Math.max(pct, 2) + '%"></div><div class="rain-label">' + k.split('/')[0] + '</div></div>';
-  }).join('') + '<div class="rain-axis"></div>';
+  const keys=Object.keys(chuvaByKey);
+  const maxCh=Math.max(...Object.values(chuvaByKey),1);
+  document.getElementById('rain-bars').innerHTML=
+    keys.slice(-24).map(k=>{
+      const val=chuvaByKey[k],pct=(val/maxCh)*100;
+      return '<div class="rain-bar-wrap">'+(val>0?'<div class="rain-val">'+val.toFixed(1)+'</div>':'<div class="rain-val">&nbsp;</div>')+'<div class="rain-bar" style="height:'+Math.max(pct,2)+'%"></div><div class="rain-label">'+k.split('/')[0]+'</div></div>';
+    }).join('')+'<div class="rain-axis"></div>';
 
-  // ── Bateria ──────────────────────────────────────────────
-  const batPct   = Math.min(100, Math.max(0, (parseFloat(last.Bat) / 4.2) * 100));
-  const batColor = batPct > 50 ? '#00d4a0' : batPct > 20 ? '#f0a500' : '#e05c5c';
-  document.getElementById('bat-fill').style.width      = batPct + '%';
-  document.getElementById('bat-fill').style.background = batColor;
-  document.getElementById('bat-val').textContent       = fmt1(last.Bat) + 'V';
-  document.getElementById('bat-val').style.color       = batColor;
+  const batPct=Math.min(100,Math.max(0,(parseFloat(last.Bat)/4.2)*100));
+  const batCol=batPct>50?'#00d4a0':batPct>20?'#f0a500':'#e05c5c';
+  document.getElementById('bat-fill').style.cssText='width:'+batPct+'%;background:'+batCol;
+  document.getElementById('bat-val').textContent=fmt1(last.Bat)+'V';
+  document.getElementById('bat-val').style.color=batCol;
 
-  // ── Badges IAQ / UV ──────────────────────────────────────
-  const iaqB = document.getElementById('iaq-badge');
-  iaqB.textContent      = iaqLabel(parseFloat(last.IAQ));
-  iaqB.style.background = iaqColor(parseFloat(last.IAQ)) + '33';
-  iaqB.style.color      = iaqColor(parseFloat(last.IAQ));
-
-  const uvB = document.getElementById('uv-badge');
-  uvB.textContent      = uvLabel(parseFloat(last.UV));
-  uvB.style.background = '#ff910033';
-  uvB.style.color      = '#ff9100';
+  const iaqB=document.getElementById('iaq-badge');
+  iaqB.textContent=iaqLabel(parseFloat(last.IAQ));iaqB.style.cssText='background:'+iaqColor(parseFloat(last.IAQ))+'33;color:'+iaqColor(parseFloat(last.IAQ));
+  const uvB=document.getElementById('uv-badge');
+  uvB.textContent=uvLabel(parseFloat(last.UV));uvB.style.cssText='background:#ff910033;color:#ff9100';
 }
 
-// ── Helpers: gráficos ─────────────────────────────────────
-function makeLineChart(id, labels, datasets, yLabel, dualAxis) {
-  const ctx = document.getElementById(id).getContext('2d');
-  const scales = {
-    x: {
-      type: 'time',
-      time: { tooltipFormat: 'dd/MM HH:mm', displayFormats: { hour: 'HH:mm', day: 'dd/MM' } },
-      ticks: { color: '#6a8fa0', maxTicksLimit: 6, maxRotation: 0, font: { size: 10 } },
-      grid: { color: '#1e3a4f' }
-    },
-    y: {
-      ticks: { color: '#6a8fa0', font: { size: 10 } },
-      grid: { color: '#1e3a4f' },
-      title: { display: !!yLabel, text: yLabel, color: '#6a8fa0', font: { size: 10 } }
-    }
-  };
-  if (dualAxis) {
-    scales.y1 = {
-      position: 'right',
-      ticks: { color: '#4db8a0', font: { size: 10 } },
-      grid: { drawOnChartArea: false }
-    };
-  }
-  return new Chart(ctx, {
-    type: 'line',
-    data: { labels: labels, datasets: datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      aspectRatio: 2.6,
-      interaction: { intersect: false, mode: 'index' },
-      plugins: {
-        legend: { display: !!dualAxis, labels: { color: '#6a8fa0', font: { size: 10 }, boxWidth: 10 } },
-        tooltip: {
-          backgroundColor: '#1a3040', borderColor: '#1e3a4f', borderWidth: 1,
-          titleColor: '#e8f4f0', bodyColor: '#6a8fa0', padding: 8
-        }
-      },
-      scales: scales
-    }
-  });
+function makeChart(id,labels,datasets,yLabel,dual){
+  const ctx=document.getElementById(id).getContext('2d');
+  const sc={x:{type:'time',time:{tooltipFormat:'dd/MM HH:mm',displayFormats:{hour:'HH:mm',day:'dd/MM'}},ticks:{color:'#6a8fa0',maxTicksLimit:6,maxRotation:0,font:{size:10}},grid:{color:'#1e3a4f'}},y:{ticks:{color:'#6a8fa0',font:{size:10}},grid:{color:'#1e3a4f'},title:{display:!!yLabel,text:yLabel,color:'#6a8fa0',font:{size:10}}}};
+  if(dual)sc.y1={position:'right',ticks:{color:'#4db8a0',font:{size:10}},grid:{drawOnChartArea:false}};
+  return new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:true,aspectRatio:2.6,interaction:{intersect:false,mode:'index'},plugins:{legend:{display:!!dual,labels:{color:'#6a8fa0',font:{size:10},boxWidth:10}},tooltip:{backgroundColor:'#1a3040',borderColor:'#1e3a4f',borderWidth:1,titleColor:'#e8f4f0',bodyColor:'#6a8fa0',padding:8}},scales:sc}});
 }
 
-// ── Helpers: formatação ───────────────────────────────────
-function fmt(v)  { const n = parseFloat(v); return isNaN(n) ? '-' : n.toFixed(1); }
-function fmt0(v) { const n = parseFloat(v); return isNaN(n) ? '-' : Math.round(n); }
-function fmt1(v) { const n = parseFloat(v); return isNaN(n) ? '-' : n.toFixed(1); }
-
-function formatarPeriodo(nome) {
-  const partes = nome.split('-');
-  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  return meses[parseInt(partes[1], 10) - 1] + ' ' + partes[0];
-}
-
-function iaqLabel(v) {
-  if (v <= 50)  return 'Bom';
-  if (v <= 100) return 'Moderado';
-  if (v <= 150) return 'Insalubre GS';
-  if (v <= 200) return 'Insalubre';
-  if (v <= 300) return 'Muito Insalubre';
-  return 'Perigoso';
-}
-function iaqColor(v) {
-  if (v <= 50)  return '#00d4a0';
-  if (v <= 100) return '#f0e060';
-  if (v <= 150) return '#f0a500';
-  if (v <= 200) return '#e05c5c';
-  return '#cc0000';
-}
-function uvLabel(v) {
-  if (v <= 2)  return 'Baixo';
-  if (v <= 5)  return 'Moderado';
-  if (v <= 7)  return 'Alto';
-  if (v <= 10) return 'Muito Alto';
-  return 'Extremo';
-}
-
-// ── Estados de UI ─────────────────────────────────────────
-function mostrarLoading() {
-  document.getElementById('app-body').innerHTML =
-    '<div class="state-msg"><div class="spinner"></div><p>Carregando dados…</p></div>';
-}
-function mostrarErro(msg) {
-  document.getElementById('app-body').innerHTML =
-    '<div class="state-msg"><div class="icon">⚠️</div><p>' + msg + '</p></div>';
-}
-function mostrarVazio(msg) {
-  document.getElementById('app-body').innerHTML =
-    '<div class="state-msg"><div class="icon">📭</div><p>' + msg + '</p></div>';
-}
-function destroyCharts() {
-  chartInstances.forEach(c => c.destroy());
-  chartInstances = [];
-}
+function fmt(v){const n=parseFloat(v);return isNaN(n)?'-':n.toFixed(1);}
+function fmt0(v){const n=parseFloat(v);return isNaN(n)?'-':Math.round(n);}
+function fmt1(v){const n=parseFloat(v);return isNaN(n)?'-':n.toFixed(1);}
+function formatarPeriodo(nome){const p=nome.split('-');return['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][parseInt(p[1],10)-1]+' '+p[0];}
+function iaqLabel(v){if(v<=50)return'Bom';if(v<=100)return'Moderado';if(v<=150)return'Insalubre GS';if(v<=200)return'Insalubre';if(v<=300)return'Muito Insalubre';return'Perigoso';}
+function iaqColor(v){if(v<=50)return'#00d4a0';if(v<=100)return'#f0e060';if(v<=150)return'#f0a500';if(v<=200)return'#e05c5c';return'#cc0000';}
+function uvLabel(v){if(v<=2)return'Baixo';if(v<=5)return'Moderado';if(v<=7)return'Alto';if(v<=10)return'Muito Alto';return'Extremo';}
+function mostrarLoading(){document.getElementById('app-body').innerHTML='<div class="state-msg"><div class="spinner"></div><p>Carregando dados…</p></div>';}
+function mostrarErro(msg){document.getElementById('app-body').innerHTML='<div class="state-msg"><div class="icon">⚠️</div><p>'+msg+'</p></div>';}
+function mostrarVazio(msg){document.getElementById('app-body').innerHTML='<div class="state-msg"><div class="icon">📭</div><p>'+msg+'</p></div>';}
+function destroyCharts(){chartInstances.forEach(c=>c.destroy());chartInstances=[];}
 
 init();
 </script>
