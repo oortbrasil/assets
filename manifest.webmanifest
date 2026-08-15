@@ -1,0 +1,19 @@
+{
+  "id": "./",
+  "name": "Oort Agro",
+  "short_name": "Oort Agro",
+  "description": "Monitoramento de estações-sonda agrometeorológicas Oort.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f2027",
+  "theme_color": "#0f2027",
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/oortbrasil/assets/main/icon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
