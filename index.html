@@ -44,6 +44,14 @@ select:focus{outline:none;border-color:var(--accent)}
 .summary-card .s-unit{font-size:13px;font-weight:400;color:var(--muted)}
 .summary-card .s-range{font-size:11px;color:var(--muted);margin-top:6px}
 .s-temp{color:#ff7e5f}.s-umi{color:var(--accent2)}.s-chuva{color:var(--accent)}.s-vento{color:#b8a0ff}
+
+.forecast-card{background:linear-gradient(135deg, var(--card) 0%, var(--surface) 100%);border:1px solid var(--accent);border-radius:var(--radius);padding:14px;margin-bottom:12px;display:flex;align-items:center;gap:14px}
+.forecast-icon{font-size:36px;line-height:1;flex-shrink:0}
+.forecast-info{flex:1}
+.forecast-title{font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:.8px;font-weight:700}
+.forecast-desc{font-size:15px;font-weight:700;margin-top:2px;color:var(--text)}
+.forecast-sub{font-size:11px;color:var(--muted);margin-top:4px}
+
 .charts{padding:8px 16px}.chart-section{margin-bottom:16px}
 .section-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
 .section-label::after{content:'';flex:1;height:1px;background:var(--border)}
@@ -71,6 +79,7 @@ canvas{display:block;width:100%!important;max-height:180px}
 .solo-val{font-size:24px;font-weight:700}
 .solo-lbl{font-size:10px;color:var(--muted);margin-top:2px}
 .relatorios-list{padding:12px 16px}
+.rel-header-estacao{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:12px;text-transform:uppercase;letter-spacing:.6px}
 .rel-item{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;cursor:pointer;text-decoration:none;color:var(--text);transition:border-color .2s}
 .rel-item:active{border-color:var(--accent)}
 .rel-icon{font-size:28px;flex-shrink:0}
@@ -118,7 +127,7 @@ canvas{display:block;width:100%!important;max-height:180px}
     <label>Período</label>
     <select id="sel-planilha" onchange="carregarDados()"><option value="">—</option></select>
   </div>
-  <button class="btn-refresh" id="btn-refresh" onclick="carregarDados()">↻</button>
+  <button class="btn-refresh" id="btn-refresh" onclick="carregarDados(true)">↻</button>
 </div>
 
 <div class="ultima-leitura" id="ultima-leitura" style="display:none">
@@ -148,6 +157,19 @@ let dadosAtivos=[],periodoAtivo='hoje',abaAtiva='dados',chartInstances=[],estaca
 function atualizarClock(){document.getElementById('clock').textContent=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
 setInterval(atualizarClock,1000);atualizarClock();
 
+// --- GERENCIADOR DE CACHE LOCAL ---
+const Cache = {
+  set(chave, valor) {
+    try { localStorage.setItem('oort_' + chave, JSON.stringify(valor)); } catch(e){}
+  },
+  get(chave) {
+    try {
+      const d = localStorage.getItem('oort_' + chave);
+      return d ? JSON.parse(d) : null;
+    } catch(e) { return null; }
+  }
+};
+
 function setAba(aba,el){
   abaAtiva=aba;
   document.querySelectorAll('.main-nav-tab').forEach(t=>t.classList.remove('active'));
@@ -175,85 +197,250 @@ function filtrar(dados){
   return dados;
 }
 
+function calcularPrevisaoLocal(dados) {
+  if (!dados || dados.length < 2) {
+    return { desc: "Dados insuficientes para tendência", tendencia: "Estável", icone: "🌤️" };
+  }
+
+  const atual = dados[dados.length - 1];
+  const pAtual = parseFloat(atual.Press);
+  if (isNaN(pAtual)) return { desc: "Pressão indisponível", tendencia: "-", icone: "❓" };
+
+  const dataAtual = new Date(atual.Date);
+  const limite3h = new Date(dataAtual.getTime() - (3 * 60 * 60 * 1000));
+
+  let leituraAnterior = dados[0];
+  for (let i = dados.length - 1; i >= 0; i--) {
+    if (new Date(dados[i].Date) <= limite3h) {
+      leituraAnterior = dados[i];
+      break;
+    }
+  }
+
+  const pAnt = parseFloat(leituraAnterior.Press);
+  if (isNaN(pAnt)) return { desc: "Aguardando histórico de pressão", tendencia: "Estável", icone: "⛅" };
+
+  const deltaP = pAtual - pAnt;
+  let tendencia = "Estável";
+  let strTend = "Estável (0 hPa/3h)";
+
+  if (deltaP >= 1.2) {
+    tendencia = "Subindo";
+    strTend = `Elevação (${deltaP.toFixed(1)} hPa/3h)`;
+  } else if (deltaP <= -1.2) {
+    tendencia = "Caindo";
+    strTend = `Queda (${deltaP.toFixed(1)} hPa/3h)`;
+  }
+
+  let desc = "Tempo estável";
+  let icone = "🌤️";
+
+  if (tendencia === "Caindo") {
+    if (pAtual < 1009) {
+      desc = "Tempestade / Chuva forte provável (6-12h)";
+      icone = "⛈️";
+    } else if (pAtual < 1018) {
+      desc = "Instável, tendência a chuva nas próximas horas";
+      icone = "🌧️";
+    } else {
+      desc = "Nebulosidade em aumento, possível instabilidade";
+      icone = "☁️";
+    }
+  } else if (tendencia === "Subindo") {
+    if (pAtual > 1020) {
+      desc = "Tempo firme, seco e estável";
+      icone = "☀️";
+    } else {
+      desc = "Melhoria progressiva das condições do tempo";
+      icone = "🌤️";
+    }
+  } else {
+    if (pAtual > 1015) {
+      desc = "Tempo bom e sem mudanças significativas";
+      icone = "☀️";
+    } else {
+      desc = "Tempo parcialmente nublado e estável";
+      icone = "⛅";
+    }
+  }
+
+  return { desc, tendencia: strTend, icone };
+}
+
 async function init(){
+  const cachedEstacoes = Cache.get('estacoes');
+  if(cachedEstacoes && cachedEstacoes.length) {
+    preencherSelectEstacoes(cachedEstacoes);
+    onEstacaoChange(true);
+  }
+
   try{
     const r=await fetch(API+'?action=estacoes');
     const d=await r.json();
     if(!d.ok)throw new Error(d.erro);
-    const sel=document.getElementById('sel-estacao');
-    sel.innerHTML=d.estacoes.map(e=>'<option value="'+e.nome+'">'+e.codigo+'</option>').join('');
-    if(d.estacoes.length)await onEstacaoChange();
-  }catch(err){mostrarErro('Não foi possível conectar.<br><small>'+err.message+'</small>');}
+    Cache.set('estacoes', d.estacoes);
+    preencherSelectEstacoes(d.estacoes);
+    if(!cachedEstacoes) await onEstacaoChange();
+  }catch(err){
+    if(!cachedEstacoes) mostrarErro('Não foi possível conectar.<br><small>'+err.message+'</small>');
+  }
 }
 
-async function onEstacaoChange(){
+function preencherSelectEstacoes(estacoes) {
+  const sel=document.getElementById('sel-estacao');
+  const actualVal = sel.value;
+  sel.innerHTML=estacoes.map(e=>'<option value="'+e.nome+'">'+e.codigo+'</option>').join('');
+  if(actualVal) sel.value = actualVal;
+}
+
+async function onEstacaoChange(usarCache = false){
   estacaoAtual=document.getElementById('sel-estacao').value;
   if(!estacaoAtual)return;
+  
   atualizarUltimaLeitura(estacaoAtual);
   if(abaAtiva==='relatorios'){carregarRelatorios();return;}
+
+  const cachePlanilhas = Cache.get('planilhas_' + estacaoAtual);
+  if(cachePlanilhas) {
+    preencherSelectPlanilhas(cachePlanilhas);
+    carregarDados(usarCache);
+  }
+
   try{
     const r=await fetch(API+'?action=planilhas&estacao='+encodeURIComponent(estacaoAtual));
     const d=await r.json();
     if(!d.ok)throw new Error(d.erro);
-    const sel=document.getElementById('sel-planilha');
-    sel.innerHTML=d.planilhas.map(p=>'<option value="'+p.nome+'">'+formatarPeriodo(p.nome)+'</option>').join('');
-    if(d.planilhas.length)await carregarDados();
-    else mostrarVazio('Nenhuma planilha encontrada.');
-  }catch(err){mostrarErro('Erro: '+err.message);}
+    Cache.set('planilhas_' + estacaoAtual, d.planilhas);
+    preencherSelectPlanilhas(d.planilhas);
+    if(!cachePlanilhas) await carregarDados();
+  }catch(err){
+    if(!cachePlanilhas) mostrarErro('Erro: '+err.message);
+  }
+}
+
+function preencherSelectPlanilhas(planilhas) {
+  const sel=document.getElementById('sel-planilha');
+  const valAtual = sel.value;
+  sel.innerHTML=planilhas.map(p=>'<option value="'+p.nome+'">'+formatarPeriodo(p.nome)+'</option>').join('');
+  if(valAtual && Array.from(sel.options).some(o => o.value === valAtual)) {
+    sel.value = valAtual;
+  }
 }
 
 async function atualizarUltimaLeitura(estacao){
   const el=document.getElementById('ultima-leitura');
   const tx=document.getElementById('ul-texto');
   el.style.display='flex';
-  tx.textContent='Verificando última leitura…';
+  
+  const cacheUlt = Cache.get('ult_' + estacao);
+  if(cacheUlt) {
+    processarTextoUltimaLeitura(cacheUlt);
+  } else {
+    tx.textContent='Atualizando última leitura…';
+  }
+
   try{
     const r=await fetch(API+'?action=ultima_leitura&estacao='+encodeURIComponent(estacao));
     const d=await r.json();
-    if(!d.ok||!d.data){tx.textContent='Sem dados registrados';return;}
-    const dt=new Date(d.data.replace(' ','T')+'-03:00');
-    const diff=Math.round((new Date()-dt)/60000);
-    let status='',label='Última leitura: '+d.data;
-    if(diff>60){status='stale';label+=' ('+diff+' min atrás)';}
-    if(diff>180){status='offline';label+=' ⚠️';}
-    el.className='ultima-leitura '+status;
-    tx.textContent=label;
-  }catch(e){tx.textContent='Erro ao verificar leitura';}
+    if(!d.ok||!d.data){
+      if(!cacheUlt) tx.textContent='Sem dados registrados';
+      return;
+    }
+    Cache.set('ult_' + estacao, d.data);
+    processarTextoUltimaLeitura(d.data);
+  }catch(e){
+    if(!cacheUlt) tx.textContent='Erro ao verificar leitura';
+  }
 }
 
-async function carregarDados(){
+function processarTextoUltimaLeitura(dataStr) {
+  const el=document.getElementById('ultima-leitura');
+  const tx=document.getElementById('ul-texto');
+  const dt=new Date(dataStr.replace(' ','T')+'-03:00');
+  const diff=Math.round((new Date()-dt)/60000);
+  let status='',label='Última leitura: '+dataStr;
+  if(diff>60){status='stale';label+=' ('+diff+' min atrás)';}
+  if(diff>180){status='offline';label+=' ⚠️';}
+  el.className='ultima-leitura '+status;
+  tx.textContent=label;
+}
+
+async function carregarDados(forceRefresh = false){
   const est=document.getElementById('sel-estacao').value;
   const plan=document.getElementById('sel-planilha').value;
   if(!est||!plan)return;
-  mostrarLoading();destroyCharts();
+
+  const keyCache = 'dados_' + est + '_' + plan;
+  const cacheDados = Cache.get(keyCache);
+
+  if(cacheDados && !forceRefresh) {
+    dadosAtivos = cacheDados;
+    destroyCharts();
+    const f=filtrar(dadosAtivos);
+    if(f.length) renderizar(f);
+  } else if(!cacheDados) {
+    mostrarLoading();
+    destroyCharts();
+  }
+
   try{
     const r=await fetch(API+'?action=dados&estacao='+encodeURIComponent(est)+'&planilha='+encodeURIComponent(plan));
     const d=await r.json();
     if(!d.ok)throw new Error(d.erro);
-    if(!d.dados.length){mostrarVazio('Sem dados para este período.');return;}
+    if(!d.dados.length){
+      if(!cacheDados) mostrarVazio('Sem dados para este período.');
+      return;
+    }
+    Cache.set(keyCache, d.dados);
     dadosAtivos=d.dados;
     const f=filtrar(dadosAtivos);
+    destroyCharts();
     if(!f.length)mostrarVazio('Sem dados para este intervalo. Tente "7 dias" ou "Mês".');
     else renderizar(f);
-  }catch(err){mostrarErro('Erro: '+err.message);}
+  }catch(err){
+    if(!cacheDados) mostrarErro('Erro: '+err.message);
+  }
 }
 
 async function carregarRelatorios(){
   const rb=document.getElementById('rel-body');
-  rb.innerHTML='<div class="state-msg"><div class="spinner"></div><p>Carregando relatórios…</p></div>';
+  const selEst = document.getElementById('sel-estacao');
+  const nomeEstacaoDisplay = selEst.options[selEst.selectedIndex] ? selEst.options[selEst.selectedIndex].text : estacaoAtual;
+
+  const keyCache = 'relatorios_' + estacaoAtual;
+  const cacheRel = Cache.get(keyCache);
+
+  if(cacheRel) {
+    renderizarRelatorios(cacheRel, nomeEstacaoDisplay);
+  } else {
+    rb.innerHTML='<div class="state-msg"><div class="spinner"></div><p>Carregando relatórios…</p></div>';
+  }
+
   try{
     const r=await fetch(API+'?action=relatorios&estacao='+encodeURIComponent(estacaoAtual));
     const d=await r.json();
     if(!d.ok)throw new Error(d.erro);
-    if(!d.relatorios.length){rb.innerHTML='<div class="state-msg"><div class="icon">📭</div><p>Nenhum relatório encontrado.</p></div>';return;}
-    rb.innerHTML=d.relatorios.map(rel=>
+    Cache.set(keyCache, d.relatorios);
+    renderizarRelatorios(d.relatorios, nomeEstacaoDisplay);
+  }catch(err){
+    if(!cacheRel) rb.innerHTML='<div class="state-msg"><div class="icon">⚠️</div><p>Erro: '+err.message+'</p></div>';
+  }
+}
+
+function renderizarRelatorios(lista, nomeEstacao) {
+  const rb=document.getElementById('rel-body');
+  if(!lista.length){
+    rb.innerHTML='<div class="rel-header-estacao">Estação: '+nomeEstacao+'</div><div class="state-msg"><div class="icon">📭</div><p>Nenhum relatório encontrado para esta estação.</p></div>';
+    return;
+  }
+  rb.innerHTML='<div class="rel-header-estacao">Estação: '+nomeEstacao+'</div>' + 
+    lista.map(rel=>
       '<a class="rel-item" href="'+rel.url+'" target="_blank" rel="noopener">'+
         '<div class="rel-icon">📄</div>'+
         '<div class="rel-info"><div class="rel-nome">'+rel.nome+'</div><div class="rel-open">Toque para abrir o PDF</div></div>'+
         '<div class="rel-arrow">›</div>'+
       '</a>'
     ).join('');
-  }catch(err){rb.innerHTML='<div class="state-msg"><div class="icon">⚠️</div><p>Erro: '+err.message+'</p></div>';}
 }
 
 function renderizar(dados){
@@ -274,6 +461,8 @@ function renderizar(dados){
   const umiOk=umiAr.filter(v=>!isNaN(v));
   const ventoOk=vento.filter(v=>!isNaN(v));
 
+  const prev = calcularPrevisaoLocal(dadosAtivos);
+
   body.innerHTML=
     '<div class="summary">'+
       '<div class="summary-card"><div class="s-label">Temp. Ar</div><div class="s-value s-temp">'+fmt(last.TempAr)+'<span class="s-unit">°C</span></div><div class="s-range">↓'+(tempOk.length?Math.min(...tempOk).toFixed(1):'-')+' ↑'+(tempOk.length?Math.max(...tempOk).toFixed(1):'-')+' °C</div></div>'+
@@ -283,6 +472,14 @@ function renderizar(dados){
     '</div>'+
     '<div class="charts">'+
       '<div class="chart-section"><div class="section-label">Atmosfera</div>'+
+        '<div class="forecast-card">'+
+          '<div class="forecast-icon">'+prev.icone+'</div>'+
+          '<div class="forecast-info">'+
+            '<div class="forecast-title">Previsão Barométrica Local (6-12h)</div>'+
+            '<div class="forecast-desc">'+prev.desc+'</div>'+
+            '<div class="forecast-sub">Tendência de Pressão: <b>'+prev.tendencia+'</b></div>'+
+          '</div>'+
+        '</div>'+
         '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#ff7e5f"></span>Temperatura do Ar (°C)</div><canvas id="c-temp"></canvas></div>'+
         '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#00a8cc"></span>Umidade do Ar (%)</div><canvas id="c-umi"></canvas></div>'+
         '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#c0a0ff"></span>Pressão Atmosférica (hPa)</div><canvas id="c-press"></canvas></div>'+
@@ -333,7 +530,7 @@ function renderizar(dados){
   document.getElementById('rain-bars').innerHTML=
     keys.slice(-24).map(k=>{
       const val=chuvaByKey[k],pct=(val/maxCh)*100;
-      return '<div class="rain-bar-wrap">'+(val>0?'<div class="rain-val">'+val.toFixed(1)+'</div>':'<div class="rain-val">&nbsp;</div>')+'<div class="rain-bar" style="height:'+Math.max(pct,2)+'%"></div><div class="rain-label">'+k.split('/')[0]+'</div></div>';
+      return '<div class="rain-bar-wrap">'+(val>0?'<div class="rain-val">'+val.toFixed(1)+'</div>':'<div class="rain-bar" style="height:'+Math.max(pct,2)+'%"></div><div class="rain-label">'+k.split('/')[0]+'</div></div>';
     }).join('')+'<div class="rain-axis"></div>';
 
   const batPct=Math.min(100,Math.max(0,(parseFloat(last.Bat)/4.2)*100));
