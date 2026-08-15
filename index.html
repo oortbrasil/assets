@@ -10,6 +10,7 @@
 <title>OORT TECNOLOGIAS – Estações-Sonda AgroMeteorológicas</title>
 <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/oortbrasil/assets/main/icon.png">
 <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/oortbrasil/assets/main/icon.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root{--bg:#0f2027;--surface:#1a3040;--card:#162535;--border:#1e3a4f;--accent:#00d4a0;--accent2:#00a8cc;--text:#e8f4f0;--muted:#6a8fa0;--radius:14px;--safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -44,14 +45,6 @@ select:focus{outline:none;border-color:var(--accent)}
 .summary-card .s-unit{font-size:13px;font-weight:400;color:var(--muted)}
 .summary-card .s-range{font-size:11px;color:var(--muted);margin-top:6px}
 .s-temp{color:#ff7e5f}.s-umi{color:var(--accent2)}.s-chuva{color:var(--accent)}.s-vento{color:#b8a0ff}
-
-.forecast-card{background:linear-gradient(135deg, var(--card) 0%, var(--surface) 100%);border:1px solid var(--accent);border-radius:var(--radius);padding:14px;margin-bottom:12px;display:flex;align-items:center;gap:14px}
-.forecast-icon{font-size:36px;line-height:1;flex-shrink:0}
-.forecast-info{flex:1}
-.forecast-title{font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:.8px;font-weight:700}
-.forecast-desc{font-size:15px;font-weight:700;margin-top:2px;color:var(--text)}
-.forecast-sub{font-size:11px;color:var(--muted);margin-top:4px}
-
 .charts{padding:8px 16px}.chart-section{margin-bottom:16px}
 .section-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
 .section-label::after{content:'';flex:1;height:1px;background:var(--border)}
@@ -79,7 +72,6 @@ canvas{display:block;width:100%!important;max-height:180px}
 .solo-val{font-size:24px;font-weight:700}
 .solo-lbl{font-size:10px;color:var(--muted);margin-top:2px}
 .relatorios-list{padding:12px 16px}
-.rel-header-estacao{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:12px;text-transform:uppercase;letter-spacing:.6px}
 .rel-item{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;cursor:pointer;text-decoration:none;color:var(--text);transition:border-color .2s}
 .rel-item:active{border-color:var(--accent)}
 .rel-icon{font-size:28px;flex-shrink:0}
@@ -95,361 +87,492 @@ canvas{display:block;width:100%!important;max-height:180px}
 .footer{padding:20px 16px calc(var(--safe-bot) + 20px);text-align:center;font-size:11px;color:var(--muted)}
 .sec{display:none}.sec.on{display:block}
 .period-ctrl{display:none}.period-ctrl.on{display:flex}
+
+/* Previsões */
+.forecast-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:8px 16px 4px}
+.forecast-card{background:linear-gradient(145deg,#182c3d,#142433);border:1px solid var(--border);border-radius:var(--radius);padding:14px;min-height:155px}
+.forecast-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.forecast-kicker{font-size:9px;color:var(--muted);letter-spacing:.7px;font-weight:700;margin-bottom:4px}
+.forecast-title{font-size:17px;font-weight:700}.forecast-icon{font-size:32px;line-height:1}
+.forecast-main{display:flex;align-items:center;gap:14px;margin:12px 0}.forecast-main strong{font-size:34px;letter-spacing:-1.5px}.forecast-main div{display:flex;flex-direction:column;gap:2px;font-size:10px;color:var(--muted)}
+.forecast-days{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;border-top:1px solid var(--border);padding-top:9px}
+.day-mini{text-align:center;display:flex;flex-direction:column;gap:2px;min-width:0}.day-mini span{font-size:9px;color:var(--muted);text-transform:capitalize}.day-mini b{font-size:18px}.day-mini small{font-size:8px;white-space:nowrap}.day-mini em{font-size:8px;color:var(--accent2);font-style:normal}
+.forecast-desc{font-size:11px;line-height:1.45;color:var(--muted);margin-top:10px}.forecast-foot{font-size:9px;color:#567887;margin-top:10px;border-top:1px solid var(--border);padding-top:7px}
+.forecast-action{margin-top:12px;background:var(--surface);border:1px solid var(--accent);color:var(--accent);padding:8px 10px;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer}
+.forecast-loading{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:11px;height:100%;min-height:120px;justify-content:center}.mini-spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+.baro-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.baro-stats>div{background:var(--surface);border-radius:9px;padding:9px}.baro-stats span{display:block;font-size:9px;color:var(--muted);margin-bottom:3px}.baro-stats b{font-size:14px}.baro-stats b.up{color:var(--accent)}.baro-stats b.down{color:#ff7e5f}
+/* Relatórios por estação */
+.cache-note{font-size:10px;color:var(--accent);padding:2px 2px 10px}.rel-group{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden}.rel-group summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:14px}.rel-group summary::-webkit-details-marker{display:none}.rel-group summary span:first-child{display:flex;flex-direction:column;gap:2px}.rel-group summary b{font-size:13px}.rel-group summary small{font-size:9px;color:var(--muted)}.rel-count{background:var(--surface);color:var(--accent);font-size:10px;font-weight:700;padding:4px 8px;border-radius:20px}.rel-group-body{padding:0 10px 10px}.rel-group-body .rel-item{background:var(--surface);margin-bottom:7px}.rel-empty{padding:14px 6px;color:var(--muted);font-size:11px}
+/* Configurações */
+.config-wrap{padding:12px 16px}.config-intro{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}.config-intro b{font-size:14px}.config-intro p{font-size:11px;color:var(--muted);line-height:1.5;margin-top:6px}.config-list{display:flex;flex-direction:column;gap:8px}.config-station{width:100%;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:12px;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;text-align:left;cursor:pointer}.config-station span:first-child{display:flex;flex-direction:column;gap:2px}.config-station b{font-size:13px}.config-station small{color:var(--muted);font-size:9px}.config-station>span:last-child{font-size:20px;color:var(--muted)}
+.config-panel{background:var(--card);border:1px solid var(--accent);border-radius:var(--radius);padding:14px;margin-top:12px;scroll-margin-top:190px}.config-panel-title{display:flex;justify-content:space-between;align-items:flex-start}.config-panel-title>div{display:flex;flex-direction:column}.config-panel-title b{font-size:14px}.config-panel-title small{color:var(--muted);font-size:9px}.config-panel-title button{background:none;border:0;color:var(--muted);font-size:24px;cursor:pointer}.config-help{font-size:10px;color:var(--muted);margin:8px 0 10px;line-height:1.4}#station-map{height:310px;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:#10202b}.coord-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.coord-grid label{font-size:9px;color:var(--muted);display:flex;flex-direction:column;gap:4px}.coord-grid input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:9px;font-size:12px}.coord-grid input:focus{outline:none;border-color:var(--accent)}.config-actions{display:flex;gap:8px;margin-top:10px}.btn-secondary,.btn-save{flex:1;border-radius:9px;padding:10px 8px;font-size:11px;font-weight:700;cursor:pointer}.btn-secondary{background:var(--surface);border:1px solid var(--border);color:var(--text)}.btn-save{background:var(--accent);border:0;color:#0f2027}.cfg-status{font-size:10px;color:var(--accent);margin-top:8px;min-height:14px}
+@media(max-width:650px){.forecast-grid{grid-template-columns:1fr}.forecast-days{gap:2px}.main-nav-tab{font-size:11px;padding-left:4px;padding-right:4px}}
+
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="header-logo-wrap">
-    <img src="https://raw.githubusercontent.com/oortbrasil/assets/main/topo.png" alt="OORTagro">
-  </div>
-  <div class="header-sub">Estações-Sonda AgroMeteorológicas</div>
-  <div class="header-bottom">
-    <div class="period-tabs" id="period-tabs">
-      <div class="period-tab active" onclick="setPeriodo('hoje',this)">Dia</div>
-      <div class="period-tab" onclick="setPeriodo('7d',this)">7 dias</div>
-      <div class="period-tab" onclick="setPeriodo('mes',this)">Mês</div>
-    </div>
-    <div class="header-time" id="clock">--:--</div>
-  </div>
-  <div class="main-nav" style="margin:10px -16px -12px;border-top:1px solid #1a3a2a">
-    <div class="main-nav-tab active" onclick="setAba('dados',this)">📊 Dados</div>
-    <div class="main-nav-tab" onclick="setAba('relatorios',this)">📄 Relatórios</div>
-  </div>
+  <div class="header-logo-wrap">
+    <img src="https://raw.githubusercontent.com/oortbrasil/assets/main/topo.png" alt="OORTagro">
+  </div>
+  <div class="header-sub">Estações-Sonda AgroMeteorológicas</div>
+  <div class="header-bottom">
+    <div class="period-tabs" id="period-tabs">
+      <div class="period-tab active" onclick="setPeriodo('hoje',this)">Dia</div>
+      <div class="period-tab" onclick="setPeriodo('7d',this)">7 dias</div>
+      <div class="period-tab" onclick="setPeriodo('mes',this)">Mês</div>
+    </div>
+    <div class="header-time" id="clock">--:--</div>
+  </div>
+  <div class="main-nav" style="margin:10px -16px -12px;border-top:1px solid #1a3a2a">
+    <div class="main-nav-tab active" data-aba="dados" onclick="setAba('dados',this)">📊 Dados</div>
+    <div class="main-nav-tab" data-aba="relatorios" onclick="setAba('relatorios',this)">📄 Relatórios</div>
+    <div class="main-nav-tab" data-aba="config" onclick="setAba('config',this)">⚙️ Config.</div>
+  </div>
 </div>
 
-<div class="controls">
-  <div class="control-group">
-    <label>Estação</label>
-    <select id="sel-estacao" onchange="onEstacaoChange()"><option value="">Carregando…</option></select>
-  </div>
-  <div class="control-group" id="ctrl-planilha">
-    <label>Período</label>
-    <select id="sel-planilha" onchange="carregarDados()"><option value="">—</option></select>
-  </div>
-  <button class="btn-refresh" id="btn-refresh" onclick="carregarDados(true)">↻</button>
+<div class="controls" id="controls-main">
+  <div class="control-group">
+    <label>Estação</label>
+    <select id="sel-estacao" onchange="onEstacaoChange()"><option value="">Carregando…</option></select>
+  </div>
+  <div class="control-group" id="ctrl-planilha">
+    <label>Período</label>
+    <select id="sel-planilha" onchange="carregarDados()"><option value="">—</option></select>
+  </div>
+  <button class="btn-refresh" id="btn-refresh" onclick="carregarDados()">↻</button>
 </div>
 
 <div class="ultima-leitura" id="ultima-leitura" style="display:none">
-  <span class="ul-dot"></span><span id="ul-texto">—</span>
+  <span class="ul-dot"></span><span id="ul-texto">—</span>
 </div>
 
 <div class="sec on" id="sec-dados">
-  <div id="app-body">
-    <div class="state-msg"><div class="spinner"></div><p>Conectando às estações…</p></div>
-  </div>
+  <div id="app-body">
+    <div class="state-msg"><div class="spinner"></div><p>Conectando às estações…</p></div>
+  </div>
 </div>
 
 <div class="sec" id="sec-relatorios">
-  <div class="relatorios-list" id="rel-body">
-    <div class="state-msg"><div class="spinner"></div><p>Carregando relatórios…</p></div>
+  <div class="relatorios-list" id="rel-body">
+    <div class="state-msg"><div class="spinner"></div><p>Carregando relatórios…</p></div>
+  </div>
+</div>
+
+
+<div class="sec" id="sec-config">
+  <div class="config-wrap" id="config-body">
+    <div class="state-msg"><div class="spinner"></div><p>Carregando configurações…</p></div>
   </div>
 </div>
 
 <div class="footer">OORT TECNOLOGIAS · Dados atualizados a cada 10 min</div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <script>
 const API='https://script.google.com/macros/s/AKfycbztgm_QeJl2nlnT6sK7XG3PfLxI-5XPhC17Ol5hV2bDKTyjdaKN6tbSGi4Cudp3hB7o8w/exec';
+const WEATHER_API='https://api.open-meteo.com/v1/forecast';
+const DB_NAME='oort-agro-cache-v2',DB_VERSION=1,STORE='cache';
+
 let dadosAtivos=[],periodoAtivo='hoje',abaAtiva='dados',chartInstances=[],estacaoAtual='';
+let estacoesDisponiveis=[],mapaConfig=null,marcadorConfig=null,estacaoConfigAtual='';
+let dbPromise=null,ultimaPlanilhaPorEstacao={};
 
 function atualizarClock(){document.getElementById('clock').textContent=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
 setInterval(atualizarClock,1000);atualizarClock();
 
-// --- GERENCIADOR DE CACHE LOCAL ---
-const Cache = {
-  set(chave, valor) {
-    try { localStorage.setItem('oort_' + chave, JSON.stringify(valor)); } catch(e){}
-  },
-  get(chave) {
-    try {
-      const d = localStorage.getItem('oort_' + chave);
-      return d ? JSON.parse(d) : null;
-    } catch(e) { return null; }
-  }
-};
+// ---------------- CACHE LOCAL (IndexedDB) ----------------
+function abrirDB(){
+  if(dbPromise)return dbPromise;
+  dbPromise=new Promise((resolve,reject)=>{
+    const req=indexedDB.open(DB_NAME,DB_VERSION);
+    req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(STORE))db.createObjectStore(STORE,{keyPath:'key'});};
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error);
+  });
+  return dbPromise;
+}
+async function cacheGet(key){
+  try{
+    const db=await abrirDB();
+    return await new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readonly');const r=tx.objectStore(STORE).get(key);r.onsuccess=()=>resolve(r.result||null);r.onerror=()=>reject(r.error);});
+  }catch(e){return null;}
+}
+async function cacheSet(key,value){
+  try{
+    const db=await abrirDB();
+    await new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put({key,value,ts:Date.now()});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});
+  }catch(e){console.warn('Cache indisponível',e);}
+}
 
+async function fetchJSON(url,timeout=15000){
+  const ctrl=new AbortController();
+  const timer=setTimeout(()=>ctrl.abort(),timeout);
+  try{
+    const r=await fetch(url,{cache:'no-store',signal:ctrl.signal});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    return await r.json();
+  }finally{clearTimeout(timer);}
+}
+
+// ---------------- NAVEGAÇÃO ----------------
 function setAba(aba,el){
   abaAtiva=aba;
   document.querySelectorAll('.main-nav-tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
+  if(el)el.classList.add('active');
   document.getElementById('sec-dados').classList.toggle('on',aba==='dados');
   document.getElementById('sec-relatorios').classList.toggle('on',aba==='relatorios');
-  document.getElementById('ctrl-planilha').style.display=aba==='dados'?'':'none';
-  document.getElementById('btn-refresh').style.display=aba==='dados'?'':'none';
-  document.getElementById('period-tabs').style.display=aba==='dados'?'':'none';
-  if(aba==='relatorios'&&estacaoAtual)carregarRelatorios();
+  document.getElementById('sec-config').classList.toggle('on',aba==='config');
+  document.getElementById('controls-main').style.display=aba==='dados'?'flex':'none';
+  document.getElementById('ultima-leitura').style.display=aba==='dados'?'flex':'none';
+  document.getElementById('period-tabs').style.display=aba==='dados'?'flex':'none';
+  if(aba==='relatorios')carregarRelatoriosSeparados();
+  if(aba==='config')renderConfigLista();
 }
-
+function irParaConfig(estacao){
+  const tab=document.querySelector('.main-nav-tab[data-aba="config"]');
+  setAba('config',tab);
+  if(estacao)setTimeout(()=>abrirConfigEstacao(estacao),50);
+}
 function setPeriodo(p,el){
   periodoAtivo=p;
   document.querySelectorAll('.period-tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
   if(dadosAtivos.length){const f=filtrar(dadosAtivos);destroyCharts();if(!f.length)mostrarVazio('Sem dados. Tente outro filtro.');else renderizar(f);}
 }
-
 function filtrar(dados){
   if(!dados.length)return dados;
   const ult=new Date(dados[dados.length-1].Date);
-  if(periodoAtivo==='hoje'){const d=ult.toISOString().slice(0,10);return dados.filter(x=>String(x.Date).slice(0,10)===d);}
+  if(periodoAtivo==='hoje'){const d=String(dados[dados.length-1].Date).slice(0,10);return dados.filter(x=>String(x.Date).slice(0,10)===d);}
   if(periodoAtivo==='7d'){const lim=new Date(ult);lim.setDate(lim.getDate()-7);return dados.filter(x=>new Date(x.Date)>=lim);}
   return dados;
 }
 
-function calcularPrevisaoLocal(dados) {
-  if (!dados || dados.length < 2) {
-    return { desc: "Dados insuficientes para tendência", tendencia: "Estável", icone: "🌤️" };
-  }
-
-  const atual = dados[dados.length - 1];
-  const pAtual = parseFloat(atual.Press);
-  if (isNaN(pAtual)) return { desc: "Pressão indisponível", tendencia: "-", icone: "❓" };
-
-  const dataAtual = new Date(atual.Date);
-  const limite3h = new Date(dataAtual.getTime() - (3 * 60 * 60 * 1000));
-
-  let leituraAnterior = dados[0];
-  for (let i = dados.length - 1; i >= 0; i--) {
-    if (new Date(dados[i].Date) <= limite3h) {
-      leituraAnterior = dados[i];
-      break;
-    }
-  }
-
-  const pAnt = parseFloat(leituraAnterior.Press);
-  if (isNaN(pAnt)) return { desc: "Aguardando histórico de pressão", tendencia: "Estável", icone: "⛅" };
-
-  const deltaP = pAtual - pAnt;
-  let tendencia = "Estável";
-  let strTend = "Estável (0 hPa/3h)";
-
-  if (deltaP >= 1.2) {
-    tendencia = "Subindo";
-    strTend = `Elevação (${deltaP.toFixed(1)} hPa/3h)`;
-  } else if (deltaP <= -1.2) {
-    tendencia = "Caindo";
-    strTend = `Queda (${deltaP.toFixed(1)} hPa/3h)`;
-  }
-
-  let desc = "Tempo estável";
-  let icone = "🌤️";
-
-  if (tendencia === "Caindo") {
-    if (pAtual < 1009) {
-      desc = "Tempestade / Chuva forte provável (6-12h)";
-      icone = "⛈️";
-    } else if (pAtual < 1018) {
-      desc = "Instável, tendência a chuva nas próximas horas";
-      icone = "🌧️";
-    } else {
-      desc = "Nebulosidade em aumento, possível instabilidade";
-      icone = "☁️";
-    }
-  } else if (tendencia === "Subindo") {
-    if (pAtual > 1020) {
-      desc = "Tempo firme, seco e estável";
-      icone = "☀️";
-    } else {
-      desc = "Melhoria progressiva das condições do tempo";
-      icone = "🌤️";
-    }
-  } else {
-    if (pAtual > 1015) {
-      desc = "Tempo bom e sem mudanças significativas";
-      icone = "☀️";
-    } else {
-      desc = "Tempo parcialmente nublado e estável";
-      icone = "⛅";
-    }
-  }
-
-  return { desc, tendencia: strTend, icone };
-}
-
+// ---------------- INICIALIZAÇÃO / ESTAÇÕES ----------------
 async function init(){
-  const cachedEstacoes = Cache.get('estacoes');
-  if(cachedEstacoes && cachedEstacoes.length) {
-    preencherSelectEstacoes(cachedEstacoes);
-    onEstacaoChange(true);
+  await abrirDB().catch(()=>null);
+  const cached=await cacheGet('estacoes');
+  let abriuComCache=false;
+  if(cached&&Array.isArray(cached.value)&&cached.value.length){
+    abriuComCache=true;
+    aplicarEstacoes(cached.value);
+    await onEstacaoChange(); // mostra cache primeiro e atualiza em seguida
   }
-
   try{
-    const r=await fetch(API+'?action=estacoes');
-    const d=await r.json();
-    if(!d.ok)throw new Error(d.erro);
-    Cache.set('estacoes', d.estacoes);
-    preencherSelectEstacoes(d.estacoes);
-    if(!cachedEstacoes) await onEstacaoChange();
+    const d=await fetchJSON(API+'?action=estacoes');
+    if(!d.ok)throw new Error(d.erro||'Falha ao listar estações');
+    const atual=estacaoAtual;
+    aplicarEstacoes(d.estacoes||[],atual);
+    await cacheSet('estacoes',d.estacoes||[]);
+    if(!abriuComCache&&d.estacoes&&d.estacoes.length)await onEstacaoChange();
+    if(abaAtiva==='config')renderConfigLista();
   }catch(err){
-    if(!cachedEstacoes) mostrarErro('Não foi possível conectar.<br><small>'+err.message+'</small>');
+    if(!abriuComCache)mostrarErro('Não foi possível conectar.<br><small>'+esc(err.message)+'</small>');
   }
 }
-
-function preencherSelectEstacoes(estacoes) {
+function aplicarEstacoes(lista,preservar=''){
+  estacoesDisponiveis=lista||[];
   const sel=document.getElementById('sel-estacao');
-  const actualVal = sel.value;
-  sel.innerHTML=estacoes.map(e=>'<option value="'+e.nome+'">'+e.codigo+'</option>').join('');
-  if(actualVal) sel.value = actualVal;
+  const alvo=preservar||sel.value||estacaoAtual;
+  sel.innerHTML=estacoesDisponiveis.map(e=>'<option value="'+escAttr(e.nome)+'">'+esc(e.codigo||e.nome)+'</option>').join('');
+  if(alvo&&estacoesDisponiveis.some(e=>e.nome===alvo))sel.value=alvo;
+  estacaoAtual=sel.value||'';
 }
-
-async function onEstacaoChange(usarCache = false){
+async function onEstacaoChange(){
   estacaoAtual=document.getElementById('sel-estacao').value;
   if(!estacaoAtual)return;
-  
+  setStatusLeitura('Atualizando última leitura…','');
   atualizarUltimaLeitura(estacaoAtual);
-  if(abaAtiva==='relatorios'){carregarRelatorios();return;}
-
-  const cachePlanilhas = Cache.get('planilhas_' + estacaoAtual);
-  if(cachePlanilhas) {
-    preencherSelectPlanilhas(cachePlanilhas);
-    carregarDados(usarCache);
-  }
-
-  try{
-    const r=await fetch(API+'?action=planilhas&estacao='+encodeURIComponent(estacaoAtual));
-    const d=await r.json();
-    if(!d.ok)throw new Error(d.erro);
-    Cache.set('planilhas_' + estacaoAtual, d.planilhas);
-    preencherSelectPlanilhas(d.planilhas);
-    if(!cachePlanilhas) await carregarDados();
-  }catch(err){
-    if(!cachePlanilhas) mostrarErro('Erro: '+err.message);
-  }
+  await carregarPlanilhas(estacaoAtual);
 }
-
-function preencherSelectPlanilhas(planilhas) {
+async function carregarPlanilhas(est){
   const sel=document.getElementById('sel-planilha');
-  const valAtual = sel.value;
-  sel.innerHTML=planilhas.map(p=>'<option value="'+p.nome+'">'+formatarPeriodo(p.nome)+'</option>').join('');
-  if(valAtual && Array.from(sel.options).some(o => o.value === valAtual)) {
-    sel.value = valAtual;
+  const cache=await cacheGet('planilhas:'+est);
+  let mostrouCache=false;
+  if(cache&&Array.isArray(cache.value)&&cache.value.length){
+    preencherPlanilhas(cache.value,ultimaPlanilhaPorEstacao[est]);
+    mostrouCache=await carregarDados({somenteCache:true});
+  }else if(!dadosAtivos.length){
+    document.getElementById('app-body').innerHTML='<div class="state-msg"><div class="spinner"></div><p>Carregando dados da estação…</p></div>';
   }
-}
-
-async function atualizarUltimaLeitura(estacao){
-  const el=document.getElementById('ultima-leitura');
-  const tx=document.getElementById('ul-texto');
-  el.style.display='flex';
-  
-  const cacheUlt = Cache.get('ult_' + estacao);
-  if(cacheUlt) {
-    processarTextoUltimaLeitura(cacheUlt);
-  } else {
-    tx.textContent='Atualizando última leitura…';
-  }
-
   try{
-    const r=await fetch(API+'?action=ultima_leitura&estacao='+encodeURIComponent(estacao));
-    const d=await r.json();
-    if(!d.ok||!d.data){
-      if(!cacheUlt) tx.textContent='Sem dados registrados';
-      return;
-    }
-    Cache.set('ult_' + estacao, d.data);
-    processarTextoUltimaLeitura(d.data);
-  }catch(e){
-    if(!cacheUlt) tx.textContent='Erro ao verificar leitura';
+    const d=await fetchJSON(API+'?action=planilhas&estacao='+encodeURIComponent(est));
+    if(!d.ok)throw new Error(d.erro||'Erro ao listar períodos');
+    const manter=sel.value||ultimaPlanilhaPorEstacao[est];
+    preencherPlanilhas(d.planilhas||[],manter);
+    await cacheSet('planilhas:'+est,d.planilhas||[]);
+    if(d.planilhas&&d.planilhas.length)await carregarDados({pularCache:mostrouCache,silencioso:mostrouCache});
+    else mostrarVazio('Nenhuma planilha encontrada.');
+  }catch(err){
+    if(!mostrouCache)mostrarErro('Erro: '+esc(err.message));
   }
 }
-
-function processarTextoUltimaLeitura(dataStr) {
-  const el=document.getElementById('ultima-leitura');
-  const tx=document.getElementById('ul-texto');
-  const dt=new Date(dataStr.replace(' ','T')+'-03:00');
-  const diff=Math.round((new Date()-dt)/60000);
-  let status='',label='Última leitura: '+dataStr;
-  if(diff>60){status='stale';label+=' ('+diff+' min atrás)';}
-  if(diff>180){status='offline';label+=' ⚠️';}
-  el.className='ultima-leitura '+status;
-  tx.textContent=label;
+function preencherPlanilhas(planilhas,manter=''){
+  const sel=document.getElementById('sel-planilha');
+  sel.innerHTML=(planilhas||[]).map(p=>'<option value="'+escAttr(p.nome)+'">'+formatarPeriodo(p.nome)+'</option>').join('');
+  if(manter&&(planilhas||[]).some(p=>p.nome===manter))sel.value=manter;
+  if(sel.value)ultimaPlanilhaPorEstacao[estacaoAtual]=sel.value;
 }
 
-async function carregarDados(forceRefresh = false){
+// ---------------- DADOS / CACHE ----------------
+async function carregarDados(opts={}){
   const est=document.getElementById('sel-estacao').value;
   const plan=document.getElementById('sel-planilha').value;
-  if(!est||!plan)return;
-
-  const keyCache = 'dados_' + est + '_' + plan;
-  const cacheDados = Cache.get(keyCache);
-
-  if(cacheDados && !forceRefresh) {
-    dadosAtivos = cacheDados;
-    destroyCharts();
-    const f=filtrar(dadosAtivos);
-    if(f.length) renderizar(f);
-  } else if(!cacheDados) {
-    mostrarLoading();
-    destroyCharts();
-  }
-
-  try{
-    const r=await fetch(API+'?action=dados&estacao='+encodeURIComponent(est)+'&planilha='+encodeURIComponent(plan));
-    const d=await r.json();
-    if(!d.ok)throw new Error(d.erro);
-    if(!d.dados.length){
-      if(!cacheDados) mostrarVazio('Sem dados para este período.');
-      return;
+  if(!est||!plan)return false;
+  ultimaPlanilhaPorEstacao[est]=plan;
+  const key='dados:'+est+':'+plan;
+  let mostrouCache=false;
+  if(!opts.pularCache){
+    const c=await cacheGet(key);
+    if(c&&Array.isArray(c.value)&&c.value.length){
+      dadosAtivos=c.value;
+      const f=filtrar(dadosAtivos);
+      destroyCharts();
+      if(f.length)renderizar(f); else mostrarVazio('Sem dados neste intervalo no cache.');
+      mostrouCache=true;
+      setStatusLeitura('Atualizando última leitura…','');
     }
-    Cache.set(keyCache, d.dados);
+  }
+  if(opts.somenteCache)return mostrouCache;
+  if(!mostrouCache&&!opts.silencioso){mostrarLoading();destroyCharts();}
+  try{
+    const d=await fetchJSON(API+'?action=dados&estacao='+encodeURIComponent(est)+'&planilha='+encodeURIComponent(plan),20000);
+    if(est!==document.getElementById('sel-estacao').value||plan!==document.getElementById('sel-planilha').value)return mostrouCache;
+    if(!d.ok)throw new Error(d.erro||'Erro ao carregar dados');
+    if(!d.dados||!d.dados.length){if(!mostrouCache)mostrarVazio('Sem dados para este período.');return mostrouCache;}
     dadosAtivos=d.dados;
+    await cacheSet(key,d.dados);
     const f=filtrar(dadosAtivos);
     destroyCharts();
     if(!f.length)mostrarVazio('Sem dados para este intervalo. Tente "7 dias" ou "Mês".');
     else renderizar(f);
+    return true;
   }catch(err){
-    if(!cacheDados) mostrarErro('Erro: '+err.message);
+    if(!mostrouCache)mostrarErro('Erro: '+esc(err.message));
+    else setStatusLeitura('Dados em cache · não foi possível atualizar agora','stale');
+    return mostrouCache;
   }
 }
-
-async function carregarRelatorios(){
-  const rb=document.getElementById('rel-body');
-  const selEst = document.getElementById('sel-estacao');
-  const nomeEstacaoDisplay = selEst.options[selEst.selectedIndex] ? selEst.options[selEst.selectedIndex].text : estacaoAtual;
-
-  const keyCache = 'relatorios_' + estacaoAtual;
-  const cacheRel = Cache.get(keyCache);
-
-  if(cacheRel) {
-    renderizarRelatorios(cacheRel, nomeEstacaoDisplay);
-  } else {
-    rb.innerHTML='<div class="state-msg"><div class="spinner"></div><p>Carregando relatórios…</p></div>';
-  }
-
+async function atualizarUltimaLeitura(estacao){
+  setStatusLeitura('Atualizando última leitura…','');
   try{
-    const r=await fetch(API+'?action=relatorios&estacao='+encodeURIComponent(estacaoAtual));
-    const d=await r.json();
-    if(!d.ok)throw new Error(d.erro);
-    Cache.set(keyCache, d.relatorios);
-    renderizarRelatorios(d.relatorios, nomeEstacaoDisplay);
-  }catch(err){
-    if(!cacheRel) rb.innerHTML='<div class="state-msg"><div class="icon">⚠️</div><p>Erro: '+err.message+'</p></div>';
+    const d=await fetchJSON(API+'?action=ultima_leitura&estacao='+encodeURIComponent(estacao),10000);
+    if(estacao!==estacaoAtual)return;
+    if(!d.ok||!d.data){setStatusLeitura('Sem dados registrados','offline');return;}
+    const dt=new Date(String(d.data).replace(' ','T')+'-03:00');
+    const diff=Math.round((new Date()-dt)/60000);
+    let status='',label='Última leitura: '+d.data;
+    if(diff>60){status='stale';label+=' ('+diff+' min atrás)';}
+    if(diff>180){status='offline';label+=' ⚠️';}
+    setStatusLeitura(label,status);
+  }catch(e){
+    if(dadosAtivos.length){const last=dadosAtivos[dadosAtivos.length-1];setStatusLeitura('Última leitura em cache: '+String(last.Date||'—'),'stale');}
+    else setStatusLeitura('Não foi possível verificar a última leitura','stale');
   }
 }
+function setStatusLeitura(text,status=''){
+  const el=document.getElementById('ultima-leitura');
+  const tx=document.getElementById('ul-texto');
+  el.className='ultima-leitura '+status;
+  if(abaAtiva==='dados')el.style.display='flex';
+  tx.textContent=text;
+}
 
-function renderizarRelatorios(lista, nomeEstacao) {
+// ---------------- RELATÓRIOS SEPARADOS POR ESTAÇÃO ----------------
+async function carregarRelatoriosSeparados(){
   const rb=document.getElementById('rel-body');
-  if(!lista.length){
-    rb.innerHTML='<div class="rel-header-estacao">Estação: '+nomeEstacao+'</div><div class="state-msg"><div class="icon">📭</div><p>Nenhum relatório encontrado para esta estação.</p></div>';
+  if(!estacoesDisponiveis.length){rb.innerHTML='<div class="state-msg"><div class="spinner"></div><p>Carregando estações…</p></div>';return;}
+  const grupos={};
+  let temCache=false;
+  for(const e of estacoesDisponiveis){
+    const c=await cacheGet('relatorios:'+e.nome);
+    if(c&&Array.isArray(c.value)){grupos[e.nome]=c.value;temCache=true;}
+  }
+  if(temCache)renderRelatoriosAgrupados(grupos,true);
+  else rb.innerHTML='<div class="state-msg"><div class="spinner"></div><p>Carregando relatórios por estação…</p></div>';
+
+  await Promise.allSettled(estacoesDisponiveis.map(async e=>{
+    const d=await fetchJSON(API+'?action=relatorios&estacao='+encodeURIComponent(e.nome),15000);
+    if(!d.ok)throw new Error(d.erro||'Erro ao buscar relatórios');
+    grupos[e.nome]=normalizarRelatoriosEstacao(d.relatorios||[],e);
+    await cacheSet('relatorios:'+e.nome,grupos[e.nome]);
+  }));
+  renderRelatoriosAgrupados(grupos,false);
+}
+function normalizarRelatoriosEstacao(rels,est){
+  const possuiMetadado=(rels||[]).some(r=>r.estacao||r.codigoEstacao||r.codigo);
+  if(!possuiMetadado)return rels||[]; // endpoint já deve ter filtrado pelo parâmetro estacao
+  return (rels||[]).filter(r=>{
+    const id=String(r.estacao||r.codigoEstacao||r.codigo||'').toLowerCase();
+    return id===String(est.nome).toLowerCase()||id===String(est.codigo||'').toLowerCase();
+  });
+}
+function renderRelatoriosAgrupados(grupos,atualizando){
+  const rb=document.getElementById('rel-body');
+  const html=estacoesDisponiveis.map((e,i)=>{
+    const arr=grupos[e.nome]||[];
+    const itens=arr.length?arr.map(rel=>
+      '<a class="rel-item" href="'+escAttr(rel.url||'#')+'" target="_blank" rel="noopener">'+
+        '<div class="rel-icon">📄</div><div class="rel-info"><div class="rel-nome">'+esc(rel.nome||'Relatório')+'</div><div class="rel-open">Abrir PDF</div></div><div class="rel-arrow">›</div></a>'
+    ).join(''):'<div class="rel-empty">Nenhum relatório encontrado para esta estação.</div>';
+    return '<details class="rel-group" '+(i===0?'open':'')+'><summary><span><b>'+esc(e.codigo||e.nome)+'</b><small>'+esc(e.nome)+'</small></span><span class="rel-count">'+arr.length+'</span></summary><div class="rel-group-body">'+itens+'</div></details>';
+  }).join('');
+  rb.innerHTML=(atualizando?'<div class="cache-note">Exibindo cache · atualizando relatórios…</div>':'')+html;
+}
+
+// ---------------- PREVISÃO EXTERNA ----------------
+async function getLocalizacaoEstacao(nome){
+  const c=await cacheGet('localizacao:'+nome);
+  if(c&&c.value&&isFinite(c.value.lat)&&isFinite(c.value.lon))return c.value;
+  const e=estacoesDisponiveis.find(x=>x.nome===nome);
+  const lat=parseFloat(e&&(e.lat??e.latitude));
+  const lon=parseFloat(e&&(e.lon??e.lng??e.longitude));
+  return isFinite(lat)&&isFinite(lon)?{lat,lon}:null;
+}
+async function atualizarPrevisaoExterna(){
+  const card=document.getElementById('forecast-api');
+  if(!card)return;
+  const est=estacaoAtual;
+  const loc=await getLocalizacaoEstacao(est);
+  if(!card||est!==estacaoAtual)return;
+  if(!loc){
+    card.innerHTML='<div class="forecast-head"><div><div class="forecast-kicker">API EXTERNA</div><div class="forecast-title">Localização não definida</div></div><div class="forecast-icon">📍</div></div><p class="forecast-desc">Defina o ponto exato da estação para ativar a previsão meteorológica.</p><button class="forecast-action" onclick="irParaConfig(\''+jsStr(est)+'\')">Definir localização</button>';
     return;
   }
-  rb.innerHTML='<div class="rel-header-estacao">Estação: '+nomeEstacao+'</div>' + 
-    lista.map(rel=>
-      '<a class="rel-item" href="'+rel.url+'" target="_blank" rel="noopener">'+
-        '<div class="rel-icon">📄</div>'+
-        '<div class="rel-info"><div class="rel-nome">'+rel.nome+'</div><div class="rel-open">Toque para abrir o PDF</div></div>'+
-        '<div class="rel-arrow">›</div>'+
-      '</a>'
-    ).join('');
+  const wkey='weather:'+est+':'+loc.lat.toFixed(3)+':'+loc.lon.toFixed(3);
+  const cached=await cacheGet(wkey);
+  if(cached&&cached.value)renderPrevisaoAPI(cached.value,true);
+  if(cached&&Date.now()-cached.ts<20*60*1000)return;
+  try{
+    const url=WEATHER_API+'?latitude='+encodeURIComponent(loc.lat)+'&longitude='+encodeURIComponent(loc.lon)+'&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,pressure_msl&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,wind_speed_10m_max&timezone=auto&forecast_days=5';
+    const d=await fetchJSON(url,12000);
+    if(est!==estacaoAtual)return;
+    await cacheSet(wkey,d);
+    renderPrevisaoAPI(d,false);
+  }catch(e){
+    if(!cached)card.innerHTML='<div class="forecast-head"><div><div class="forecast-kicker">API EXTERNA</div><div class="forecast-title">Previsão indisponível</div></div><div class="forecast-icon">⚠️</div></div><p class="forecast-desc">Não foi possível consultar a previsão agora.</p>';
+  }
+}
+function renderPrevisaoAPI(d,cache){
+  const card=document.getElementById('forecast-api');if(!card||!d.current)return;
+  const info=weatherInfo(d.current.weather_code);
+  const days=(d.daily&&d.daily.time?d.daily.time:[]).slice(0,5).map((dia,i)=>{
+    const wi=weatherInfo(d.daily.weather_code[i]);
+    const nome=i===0?'Hoje':new Date(dia+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short'}).replace('.','');
+    return '<div class="day-mini"><span>'+esc(nome)+'</span><b>'+wi.icon+'</b><small>'+fmt0(d.daily.temperature_2m_min[i])+'° / '+fmt0(d.daily.temperature_2m_max[i])+'°</small><em>💧 '+fmt0(d.daily.precipitation_probability_max[i])+'%</em></div>';
+  }).join('');
+  card.innerHTML='<div class="forecast-head"><div><div class="forecast-kicker">PREVISÃO GERAL · OPEN-METEO'+(cache?' · CACHE':'')+'</div><div class="forecast-title">'+esc(info.text)+'</div></div><div class="forecast-icon">'+info.icon+'</div></div>'+ 
+    '<div class="forecast-main"><strong>'+fmt(d.current.temperature_2m)+'°C</strong><div><span>Sensação '+fmt(d.current.apparent_temperature)+'°C</span><span>Umidade '+fmt0(d.current.relative_humidity_2m)+'%</span><span>Vento '+fmt(d.current.wind_speed_10m)+' km/h</span></div></div>'+ 
+    '<div class="forecast-days">'+days+'</div>';
+}
+function weatherInfo(code){
+  code=Number(code);
+  if(code===0)return{icon:'☀️',text:'Céu limpo'};
+  if([1,2].includes(code))return{icon:'🌤️',text:'Parcialmente nublado'};
+  if(code===3)return{icon:'☁️',text:'Nublado'};
+  if([45,48].includes(code))return{icon:'🌫️',text:'Neblina'};
+  if([51,53,55,56,57].includes(code))return{icon:'🌦️',text:'Garoa'};
+  if([61,63,65,66,67,80,81,82].includes(code))return{icon:'🌧️',text:'Chuva'};
+  if([71,73,75,77,85,86].includes(code))return{icon:'🌨️',text:'Neve'};
+  if([95,96,99].includes(code))return{icon:'⛈️',text:'Trovoadas'};
+  return{icon:'🌥️',text:'Condições variáveis'};
 }
 
+// ---------------- PREVISÃO BAROMÉTRICA LOCAL ----------------
+function renderPrevisaoBarometrica(dados){
+  const card=document.getElementById('forecast-baro');if(!card)return;
+  const validos=(dados||[]).map(d=>({t:new Date(d.Date),p:parseFloat(d.Press),h:parseFloat(d.UmiAr)})).filter(x=>!isNaN(x.t)&&isFinite(x.p));
+  if(validos.length<2){card.innerHTML='<div class="forecast-head"><div><div class="forecast-kicker">ESTAÇÃO · BARÔMETRO</div><div class="forecast-title">Dados insuficientes</div></div><div class="forecast-icon">🧭</div></div><p class="forecast-desc">São necessárias leituras anteriores de pressão para calcular a tendência local.</p>';return;}
+  const last=validos[validos.length-1];
+  const alvo=last.t.getTime()-3*3600000;
+  let prev=validos[0];
+  for(const x of validos){if(x.t.getTime()<=alvo)prev=x;else break;}
+  const horas=Math.max((last.t-prev.t)/3600000,0.25);
+  const delta3=(last.p-prev.p)*(3/horas);
+  const umid=isFinite(last.h)?last.h:null;
+  let icon='➡️',titulo='Tempo estável',desc='Sem indicação barométrica de chuva ou mudanças significativas no tempo nas próximas 6 horas.';
+  if(delta3<=-3){icon='🌧️';titulo='Instabilidade aumentando';desc='Há sinal barométrico de instabilidade nas próximas 3 horas, com possibilidade de chuva ou mudança rápida do tempo.';}
+  else if(delta3<=-1.5){icon='🌦️';titulo='Tempo em deterioração';desc='A tendência indica possível mudança do tempo nas próximas 3 a 6 horas; acompanhe chuva, vento e umidade.';}
+  else if(delta3<=-.5){icon='↘️';titulo='Possível mudança';desc='Pressão em queda lenta. Pode haver alteração do tempo nas próximas 6 horas.';}
+  else if(delta3<.5){
+    icon=umid!==null&&umid>=80?'🌫️':'⛅';
+    titulo=umid!==null&&umid>=80?'Estável e úmido':'Tempo estável';
+    desc=umid!==null&&umid>=80?'Sem indicação barométrica de chuva nas próximas 6 horas, mas a umidade elevada favorece neblina ou condensação.':'Sem indicação barométrica de chuva ou mudanças significativas no tempo nas próximas 6 horas.';
+  }
+  else if(delta3<1.5){icon='↗️';titulo='Tempo estável';desc='Pressão em elevação. Sem indicação barométrica de chuva ou alterações significativas no tempo nas próximas 8 horas.';}
+  else{icon='☀️';titulo='Tempo firme';desc='Pressão em elevação consistente. Sem indicação barométrica de chuva ou alterações significativas no tempo nas próximas 12 horas.';}
+  card.innerHTML='<div class="forecast-head"><div><div class="forecast-kicker">PREVISÃO LOCAL · BARÔMETRO</div><div class="forecast-title">'+titulo+'</div></div><div class="forecast-icon">'+icon+'</div></div>'+ 
+    '<div class="baro-stats"><div><span>Pressão</span><b>'+fmt1(last.p)+' hPa</b></div><div><span>Tendência 3h</span><b class="'+(delta3<-.5?'down':delta3>.5?'up':'')+'">'+(delta3>0?'+':'')+delta3.toFixed(1)+' hPa</b></div></div>'+ 
+    '<p class="forecast-desc">'+desc+'</p><div class="forecast-foot">Estimativa heurística da própria estação com base na tendência barométrica; confirme com a previsão meteorológica geral.</div>';
+}
+
+// ---------------- CONFIGURAÇÕES / MAPA ----------------
+function renderConfigLista(){
+  const body=document.getElementById('config-body');
+  if(!estacoesDisponiveis.length){body.innerHTML='<div class="state-msg"><div class="spinner"></div><p>Carregando estações…</p></div>';return;}
+  body.innerHTML='<div class="config-intro"><b>Localização das estações</b><p>Selecione uma estação e marque no mapa o ponto exato onde ela está instalada. Essa posição será usada pela previsão meteorológica externa.</p></div><div class="config-list">'+estacoesDisponiveis.map(e=>'<button class="config-station" onclick="abrirConfigEstacao(\''+jsStr(e.nome)+'\')"><span><b>'+esc(e.codigo||e.nome)+'</b><small>'+esc(e.nome)+'</small></span><span>›</span></button>').join('')+'</div><div id="config-editor"></div>';
+}
+async function abrirConfigEstacao(nome){
+  estacaoConfigAtual=nome;
+  const e=estacoesDisponiveis.find(x=>x.nome===nome)||{nome,codigo:nome};
+  const editor=document.getElementById('config-editor');if(!editor)return;
+  let loc=await getLocalizacaoEstacao(nome);
+  const temLoc=!!loc;
+  if(!loc)loc={lat:-14.2350,lon:-51.9253}; // centro aproximado do Brasil, apenas para iniciar o mapa
+  editor.innerHTML='<div class="config-panel"><div class="config-panel-title"><div><b>'+esc(e.codigo||e.nome)+'</b><small>'+esc(e.nome)+'</small></div><button onclick="fecharConfigMapa()">×</button></div><p class="config-help">Toque no mapa ou arraste o marcador. Depois salve a localização.</p><div id="station-map"></div><div class="coord-grid"><label>Latitude<input id="cfg-lat" type="number" step="0.000001" value="'+(temLoc?loc.lat.toFixed(6):'')+'" placeholder="-17.000000"></label><label>Longitude<input id="cfg-lon" type="number" step="0.000001" value="'+(temLoc?loc.lon.toFixed(6):'')+'" placeholder="-51.000000"></label></div><div class="config-actions"><button class="btn-secondary" onclick="usarMinhaLocalizacao()">Usar minha localização</button><button class="btn-save" onclick="salvarLocalizacao()">Salvar localização</button></div><div id="cfg-status" class="cfg-status"></div></div>';
+  setTimeout(()=>iniciarMapa(loc,temLoc),40);
+  editor.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function iniciarMapa(loc,temLoc){
+  if(mapaConfig){mapaConfig.remove();mapaConfig=null;marcadorConfig=null;}
+  mapaConfig=L.map('station-map').setView([loc.lat,loc.lon],temLoc?15:4);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(mapaConfig);
+  if(temLoc)posicionarMarcador(loc.lat,loc.lon);
+  mapaConfig.on('click',e=>posicionarMarcador(e.latlng.lat,e.latlng.lng));
+  setTimeout(()=>mapaConfig.invalidateSize(),120);
+}
+function posicionarMarcador(lat,lon){
+  if(!mapaConfig)return;
+  if(!marcadorConfig){
+    marcadorConfig=L.marker([lat,lon],{draggable:true}).addTo(mapaConfig);
+    marcadorConfig.on('dragend',()=>{const p=marcadorConfig.getLatLng();atualizarCamposCoord(p.lat,p.lng);});
+  }else marcadorConfig.setLatLng([lat,lon]);
+  atualizarCamposCoord(lat,lon);
+}
+function atualizarCamposCoord(lat,lon){
+  const a=document.getElementById('cfg-lat'),o=document.getElementById('cfg-lon');
+  if(a)a.value=Number(lat).toFixed(6);if(o)o.value=Number(lon).toFixed(6);
+}
+function usarMinhaLocalizacao(){
+  const st=document.getElementById('cfg-status');
+  if(!navigator.geolocation){if(st)st.textContent='Geolocalização não disponível neste navegador.';return;}
+  if(st)st.textContent='Obtendo sua localização…';
+  navigator.geolocation.getCurrentPosition(p=>{const lat=p.coords.latitude,lon=p.coords.longitude;posicionarMarcador(lat,lon);mapaConfig.setView([lat,lon],16);if(st)st.textContent='Localização posicionada. Confirme o ponto e salve.';},()=>{if(st)st.textContent='Não foi possível obter sua localização.';},{enableHighAccuracy:true,timeout:10000});
+}
+async function salvarLocalizacao(){
+  const lat=parseFloat(document.getElementById('cfg-lat').value),lon=parseFloat(document.getElementById('cfg-lon').value);
+  const st=document.getElementById('cfg-status');
+  if(!isFinite(lat)||!isFinite(lon)||lat<-90||lat>90||lon<-180||lon>180){st.textContent='Informe coordenadas válidas.';return;}
+  await cacheSet('localizacao:'+estacaoConfigAtual,{lat,lon});
+  st.textContent='✓ Localização salva neste dispositivo.';
+  if(estacaoConfigAtual===estacaoAtual&&dadosAtivos.length)atualizarPrevisaoExterna();
+}
+function fecharConfigMapa(){if(mapaConfig){mapaConfig.remove();mapaConfig=null;marcadorConfig=null;}const e=document.getElementById('config-editor');if(e)e.innerHTML='';}
+
+// ---------------- RENDER DOS DADOS ----------------
 function renderizar(dados){
   const body=document.getElementById('app-body');
   const datas=dados.map(d=>new Date(d.Date));
   const tempAr=dados.map(d=>parseFloat(d.TempAr));
   const umiAr=dados.map(d=>parseFloat(d.UmiAr));
   const press=dados.map(d=>parseFloat(d.Press));
-  const iaq=dados.map(d=>parseFloat(d.IAQ));
+  const gasRaw=dados.map(d=>parseFloat(d.IAQ));
+  const gasValidos=gasRaw.filter(v=>isFinite(v)&&v>0);
+  const gasBaseline=calcularBaselineGas(gasValidos);
+  const iaq=dados.map(d=>gasResistanceToIAQ(parseFloat(d.IAQ),gasBaseline));
   const vento=dados.map(d=>parseFloat(d.Vento));
   const temSolo=dados.map(d=>parseFloat(d.TemSolo));
   const umiSolo=dados.map(d=>parseFloat(d.UmiSolo));
@@ -461,25 +584,19 @@ function renderizar(dados){
   const umiOk=umiAr.filter(v=>!isNaN(v));
   const ventoOk=vento.filter(v=>!isNaN(v));
 
-  const prev = calcularPrevisaoLocal(dadosAtivos);
-
   body.innerHTML=
+    '<div class="forecast-grid">'+
+      '<div class="forecast-card" id="forecast-api"><div class="forecast-loading"><span class="mini-spinner"></span>Consultando previsão meteorológica…</div></div>'+
+      '<div class="forecast-card" id="forecast-baro"></div>'+
+    '</div>'+ 
     '<div class="summary">'+
       '<div class="summary-card"><div class="s-label">Temp. Ar</div><div class="s-value s-temp">'+fmt(last.TempAr)+'<span class="s-unit">°C</span></div><div class="s-range">↓'+(tempOk.length?Math.min(...tempOk).toFixed(1):'-')+' ↑'+(tempOk.length?Math.max(...tempOk).toFixed(1):'-')+' °C</div></div>'+
       '<div class="summary-card"><div class="s-label">Umidade Ar</div><div class="s-value s-umi">'+fmt(last.UmiAr)+'<span class="s-unit">%</span></div><div class="s-range">↓'+(umiOk.length?Math.min(...umiOk).toFixed(0):'-')+' ↑'+(umiOk.length?Math.max(...umiOk).toFixed(0):'-')+' %</div></div>'+
       '<div class="summary-card"><div class="s-label">Chuva Acum.</div><div class="s-value s-chuva">'+chuvaTotal.toFixed(1)+'<span class="s-unit">mm</span></div><div class="s-range">Período selecionado</div></div>'+
       '<div class="summary-card"><div class="s-label">Vento</div><div class="s-value s-vento">'+fmt(last.Vento)+'<span class="s-unit">km/h</span></div><div class="s-range">↑'+(ventoOk.length?Math.max(...ventoOk).toFixed(1):'-')+' km/h pico</div></div>'+
-    '</div>'+
+    '</div>'+ 
     '<div class="charts">'+
       '<div class="chart-section"><div class="section-label">Atmosfera</div>'+
-        '<div class="forecast-card">'+
-          '<div class="forecast-icon">'+prev.icone+'</div>'+
-          '<div class="forecast-info">'+
-            '<div class="forecast-title">Previsão Barométrica Local (6-12h)</div>'+
-            '<div class="forecast-desc">'+prev.desc+'</div>'+
-            '<div class="forecast-sub">Tendência de Pressão: <b>'+prev.tendencia+'</b></div>'+
-          '</div>'+
-        '</div>'+
         '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#ff7e5f"></span>Temperatura do Ar (°C)</div><canvas id="c-temp"></canvas></div>'+
         '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#00a8cc"></span>Umidade do Ar (%)</div><canvas id="c-umi"></canvas></div>'+
         '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#c0a0ff"></span>Pressão Atmosférica (hPa)</div><canvas id="c-press"></canvas></div>'+
@@ -489,10 +606,10 @@ function renderizar(dados){
       '</div>'+
       '<div class="chart-section"><div class="section-label">Qualidade &amp; Radiação</div>'+
         '<div class="chart-card"><div class="gauge-row">'+
-          '<div class="gauge-item"><div class="gauge-num" style="color:#f0a500">'+fmt0(last.IAQ)+'</div><div class="gauge-sub">Índice IAQ</div><div class="gauge-badge" id="iaq-badge"></div></div>'+
+          '<div class="gauge-item"><div class="gauge-num" style="color:#f0a500">'+fmt0(gasResistanceToIAQ(parseFloat(last.IAQ),gasBaseline))+'</div><div class="gauge-sub">IAQ estimado · '+fmtGas(last.IAQ)+'</div><div class="gauge-badge" id="iaq-badge"></div></div>'+
           '<div class="gauge-item"><div class="gauge-num" style="color:#ff9100">'+fmt1(last.UV)+'</div><div class="gauge-sub">Índice UV</div><div class="gauge-badge" id="uv-badge"></div></div>'+
         '</div></div>'+
-        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#f0a500"></span>IAQ ao longo do período</div><canvas id="c-iaq"></canvas></div>'+
+        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#f0a500"></span>IAQ estimado ao longo do período</div><canvas id="c-iaq"></canvas></div>'+
       '</div>'+
       '<div class="chart-section"><div class="section-label">Vento</div>'+
         '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#b8a0ff"></span>Velocidade do Vento (km/h)</div><canvas id="c-vento"></canvas></div>'+
@@ -516,33 +633,26 @@ function renderizar(dados){
   chartInstances.push(makeChart('c-temp',datas,[{label:'Temp Ar',data:tempAr,borderColor:'#ff7e5f',...opts}],'°C'));
   chartInstances.push(makeChart('c-umi', datas,[{label:'Umidade',data:umiAr, borderColor:'#00a8cc',...opts}],'%'));
   chartInstances.push(makeChart('c-press',datas,[{label:'Pressão',data:press, borderColor:'#c0a0ff',...opts}],'hPa'));
-  chartInstances.push(makeChart('c-iaq', datas,[{label:'IAQ',    data:iaq,   borderColor:'#f0a500',...opts}],''));
-  chartInstances.push(makeChart('c-vento',datas,[{label:'Vento', data:vento, borderColor:'#b8a0ff',fill:true,backgroundColor:'rgba(184,160,255,.08)',...opts}],'km/h'));
+  chartInstances.push(makeChart('c-iaq', datas,[{label:'IAQ estimado',data:iaq,borderColor:'#f0a500',...opts}],''));
+  chartInstances.push(makeChart('c-vento',datas,[{label:'Vento',data:vento,borderColor:'#b8a0ff',fill:true,backgroundColor:'rgba(184,160,255,.08)',...opts}],'km/h'));
   chartInstances.push(makeChart('c-solo',datas,[{label:'Temp Solo',data:temSolo,borderColor:'#c8a06a',yAxisID:'y',...opts},{label:'Umi Solo',data:umiSolo,borderColor:'#4db8a0',yAxisID:'y1',...opts}],'',true));
 
   const chuvaByKey={};
-  dados.forEach(d=>{
-    const key=periodoAtivo==='hoje'?new Date(d.Date).getHours()+'h':new Date(d.Date).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
-    const v=parseFloat(d.Pluvi);if(!isNaN(v))chuvaByKey[key]=v;
-  });
-  const keys=Object.keys(chuvaByKey);
-  const maxCh=Math.max(...Object.values(chuvaByKey),1);
-  document.getElementById('rain-bars').innerHTML=
-    keys.slice(-24).map(k=>{
-      const val=chuvaByKey[k],pct=(val/maxCh)*100;
-      return '<div class="rain-bar-wrap">'+(val>0?'<div class="rain-val">'+val.toFixed(1)+'</div>':'<div class="rain-bar" style="height:'+Math.max(pct,2)+'%"></div><div class="rain-label">'+k.split('/')[0]+'</div></div>';
-    }).join('')+'<div class="rain-axis"></div>';
+  dados.forEach(d=>{const key=periodoAtivo==='hoje'?new Date(d.Date).getHours()+'h':new Date(d.Date).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});const v=parseFloat(d.Pluvi);if(!isNaN(v))chuvaByKey[key]=v;});
+  const keys=Object.keys(chuvaByKey),maxCh=Math.max(...Object.values(chuvaByKey),1);
+  document.getElementById('rain-bars').innerHTML=keys.slice(-24).map(k=>{const val=chuvaByKey[k],pct=(val/maxCh)*100;return '<div class="rain-bar-wrap">'+(val>0?'<div class="rain-val">'+val.toFixed(1)+'</div>':'<div class="rain-val">&nbsp;</div>')+'<div class="rain-bar" style="height:'+Math.max(pct,2)+'%"></div><div class="rain-label">'+k.split('/')[0]+'</div></div>';}).join('')+'<div class="rain-axis"></div>';
 
   const batPct=Math.min(100,Math.max(0,(parseFloat(last.Bat)/4.2)*100));
   const batCol=batPct>50?'#00d4a0':batPct>20?'#f0a500':'#e05c5c';
   document.getElementById('bat-fill').style.cssText='width:'+batPct+'%;background:'+batCol;
   document.getElementById('bat-val').textContent=fmt1(last.Bat)+'V';
   document.getElementById('bat-val').style.color=batCol;
+  const iaqAtual=gasResistanceToIAQ(parseFloat(last.IAQ),gasBaseline);
+  const iaqB=document.getElementById('iaq-badge');iaqB.textContent=iaqLabel(iaqAtual);iaqB.style.cssText='background:'+iaqColor(iaqAtual)+'33;color:'+iaqColor(iaqAtual);
+  const uvB=document.getElementById('uv-badge');uvB.textContent=uvLabel(parseFloat(last.UV));uvB.style.cssText='background:#ff910033;color:#ff9100';
 
-  const iaqB=document.getElementById('iaq-badge');
-  iaqB.textContent=iaqLabel(parseFloat(last.IAQ));iaqB.style.cssText='background:'+iaqColor(parseFloat(last.IAQ))+'33;color:'+iaqColor(parseFloat(last.IAQ));
-  const uvB=document.getElementById('uv-badge');
-  uvB.textContent=uvLabel(parseFloat(last.UV));uvB.style.cssText='background:#ff910033;color:#ff9100';
+  renderPrevisaoBarometrica(dados);
+  atualizarPrevisaoExterna();
 }
 
 function makeChart(id,labels,datasets,yLabel,dual){
@@ -552,19 +662,48 @@ function makeChart(id,labels,datasets,yLabel,dual){
   return new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:true,aspectRatio:2.6,interaction:{intersect:false,mode:'index'},plugins:{legend:{display:!!dual,labels:{color:'#6a8fa0',font:{size:10},boxWidth:10}},tooltip:{backgroundColor:'#1a3040',borderColor:'#1e3a4f',borderWidth:1,titleColor:'#e8f4f0',bodyColor:'#6a8fa0',padding:8}},scales:sc}});
 }
 
+// ---------------- UTILITÁRIOS ----------------
 function fmt(v){const n=parseFloat(v);return isNaN(n)?'-':n.toFixed(1);}
 function fmt0(v){const n=parseFloat(v);return isNaN(n)?'-':Math.round(n);}
 function fmt1(v){const n=parseFloat(v);return isNaN(n)?'-':n.toFixed(1);}
-function formatarPeriodo(nome){const p=nome.split('-');return['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][parseInt(p[1],10)-1]+' '+p[0];}
-function iaqLabel(v){if(v<=50)return'Bom';if(v<=100)return'Moderado';if(v<=150)return'Insalubre GS';if(v<=200)return'Insalubre';if(v<=300)return'Muito Insalubre';return'Perigoso';}
-function iaqColor(v){if(v<=50)return'#00d4a0';if(v<=100)return'#f0e060';if(v<=150)return'#f0a500';if(v<=200)return'#e05c5c';return'#cc0000';}
+function formatarPeriodo(nome){const p=String(nome).split('-');if(p.length<2)return esc(nome);return['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][parseInt(p[1],10)-1]+' '+p[0];}
+// O backend envia resistência do sensor de gás em ohms, não IAQ.
+// Sem BSEC não existe conversão oficial 1:1. Aqui usamos um IAQ relativo 0–500,
+// calibrado pelo histórico recente da própria estação: resistência maior = ar melhor.
+function calcularBaselineGas(valores){
+  if(!valores||!valores.length)return NaN;
+  const s=[...valores].filter(v=>isFinite(v)&&v>0).sort((a,b)=>a-b);
+  if(!s.length)return NaN;
+  // Percentil 90 funciona como referência de "ar limpo" sem ser dominado por um pico isolado.
+  const pos=(s.length-1)*.90,lo=Math.floor(pos),hi=Math.ceil(pos);
+  return lo===hi?s[lo]:s[lo]+(s[hi]-s[lo])*(pos-lo);
+}
+function gasResistanceToIAQ(gasOhm,baselineOhm){
+  const g=parseFloat(gasOhm),b=parseFloat(baselineOhm);
+  if(!isFinite(g)||g<=0||!isFinite(b)||b<=0)return NaN;
+  const r=Math.max(.03,Math.min(1.20,g/b));
+  // Interpolação por faixas: razão de resistência em relação ao baseline limpo -> IAQ relativo.
+  const pts=[[1.20,0],[1.00,25],[.80,50],[.60,100],[.40,150],[.25,200],[.12,300],[.05,400],[.03,500]];
+  for(let i=0;i<pts.length-1;i++){
+    const [r1,q1]=pts[i],[r2,q2]=pts[i+1];
+    if(r<=r1&&r>=r2){const t=(r1-r)/(r1-r2);return Math.round(q1+(q2-q1)*t);}
+  }
+  return r>=1.20?0:500;
+}
+function fmtGas(v){const n=parseFloat(v);if(!isFinite(n))return'—';return n>=1000?(n/1000).toFixed(2)+' kΩ':Math.round(n)+' Ω';}
+function iaqLabel(v){if(!isFinite(v))return'Sem dados';if(v<=50)return'Bom';if(v<=100)return'Médio';if(v<=150)return'Pouco saudável';if(v<=200)return'Ruim';if(v<=300)return'Muito ruim';return'Péssimo';}
+function iaqColor(v){if(!isFinite(v))return'#6a8fa0';if(v<=50)return'#00d4a0';if(v<=100)return'#b7d653';if(v<=150)return'#f0e060';if(v<=200)return'#f0a500';if(v<=300)return'#e05c5c';return'#cc0000';}
 function uvLabel(v){if(v<=2)return'Baixo';if(v<=5)return'Moderado';if(v<=7)return'Alto';if(v<=10)return'Muito Alto';return'Extremo';}
 function mostrarLoading(){document.getElementById('app-body').innerHTML='<div class="state-msg"><div class="spinner"></div><p>Carregando dados…</p></div>';}
 function mostrarErro(msg){document.getElementById('app-body').innerHTML='<div class="state-msg"><div class="icon">⚠️</div><p>'+msg+'</p></div>';}
 function mostrarVazio(msg){document.getElementById('app-body').innerHTML='<div class="state-msg"><div class="icon">📭</div><p>'+msg+'</p></div>';}
 function destroyCharts(){chartInstances.forEach(c=>c.destroy());chartInstances=[];}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function escAttr(s){return esc(s);}
+function jsStr(s){return String(s??'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r?\n/g,' ');}
 
 init();
+
 </script>
 </body>
 </html>
