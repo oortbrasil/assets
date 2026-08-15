@@ -10,6 +10,7 @@
 <title>OORT TECNOLOGIAS – Estações-Sonda AgroMeteorológicas</title>
 <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/oortbrasil/assets/main/icon.png">
 <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/oortbrasil/assets/main/icon.png">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root{--bg:#0f2027;--surface:#1a3040;--card:#162535;--border:#1e3a4f;--accent:#00d4a0;--accent2:#00a8cc;--text:#e8f4f0;--muted:#6a8fa0;--radius:14px;--safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px)}
@@ -106,7 +107,23 @@ canvas{display:block;width:100%!important;max-height:180px}
 /* Configurações */
 .config-wrap{padding:12px 16px}.config-intro{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}.config-intro b{font-size:14px}.config-intro p{font-size:11px;color:var(--muted);line-height:1.5;margin-top:6px}.config-list{display:flex;flex-direction:column;gap:8px}.config-station{width:100%;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:12px;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;text-align:left;cursor:pointer}.config-station span:first-child{display:flex;flex-direction:column;gap:2px}.config-station b{font-size:13px}.config-station small{color:var(--muted);font-size:9px}.config-station>span:last-child{font-size:20px;color:var(--muted)}
 .config-panel{background:var(--card);border:1px solid var(--accent);border-radius:var(--radius);padding:14px;margin-top:12px;scroll-margin-top:190px}.config-panel-title{display:flex;justify-content:space-between;align-items:flex-start}.config-panel-title>div{display:flex;flex-direction:column}.config-panel-title b{font-size:14px}.config-panel-title small{color:var(--muted);font-size:9px}.config-panel-title button{background:none;border:0;color:var(--muted);font-size:24px;cursor:pointer}.config-help{font-size:10px;color:var(--muted);margin:8px 0 10px;line-height:1.4}#station-map{height:310px;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:#10202b}.coord-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.coord-grid label{font-size:9px;color:var(--muted);display:flex;flex-direction:column;gap:4px}.coord-grid input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:9px;font-size:12px}.coord-grid input:focus{outline:none;border-color:var(--accent)}.config-actions{display:flex;gap:8px;margin-top:10px}.btn-secondary,.btn-save{flex:1;border-radius:9px;padding:10px 8px;font-size:11px;font-weight:700;cursor:pointer}.btn-secondary{background:var(--surface);border:1px solid var(--border);color:var(--text)}.btn-save{background:var(--accent);border:0;color:#0f2027}.cfg-status{font-size:10px;color:var(--accent);margin-top:8px;min-height:14px}
-@media(max-width:650px){.forecast-grid{grid-template-columns:1fr}.forecast-days{gap:2px}.main-nav-tab{font-size:11px;padding-left:4px;padding-right:4px}}
+/* Notificações */
+.notify-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.notify-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.notify-head b{font-size:14px}.notify-head span{font-size:24px}.notify-card p{font-size:10px;color:var(--muted);line-height:1.45;margin-top:6px}
+.notify-controls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end;margin-top:11px}.notify-controls label{font-size:9px;color:var(--muted);display:flex;flex-direction:column;gap:4px}.notify-controls select{min-width:0}.btn-notify{border:0;border-radius:9px;background:var(--accent);color:#0f2027;font-size:11px;font-weight:800;padding:10px 12px;min-height:40px;cursor:pointer;white-space:nowrap}.btn-notify.off{background:var(--surface);border:1px solid var(--border);color:var(--text)}.notify-status{font-size:9px;color:var(--muted);margin-top:8px;min-height:13px}.notify-status.ok{color:var(--accent)}.notify-status.warn{color:#f0a500}.notify-status.err{color:#e05c5c}
+
+@media(max-width:650px){
+  .forecast-grid{grid-template-columns:1fr}.forecast-days{gap:2px}.main-nav-tab{font-size:11px;padding-left:4px;padding-right:4px}
+  .controls{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 42px;gap:8px;align-items:end;padding:10px 12px 6px;flex-wrap:nowrap}
+  .control-group{min-width:0;width:100%;gap:4px}.control-group label{font-size:9px}.controls select{min-width:0;width:100%;height:40px;font-size:13px;padding:8px 27px 8px 9px;background-position:right 8px center}
+  .btn-refresh{width:42px;height:40px;padding:0;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1}
+  .ultima-leitura{margin-left:12px;margin-right:12px}
+  .notify-controls{grid-template-columns:1fr}.btn-notify{width:100%}
+}
+@media(max-width:360px){
+  .controls{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 38px;gap:6px;padding-left:10px;padding-right:10px}
+  .btn-refresh{width:38px}.controls select{font-size:12px;padding-left:7px;padding-right:23px;background-position:right 6px center}
+}
 
 </style>
 </head>
@@ -180,6 +197,8 @@ const DB_NAME='oort-agro-cache-v2',DB_VERSION=1,STORE='cache';
 let dadosAtivos=[],periodoAtivo='hoje',abaAtiva='dados',chartInstances=[],estacaoAtual='';
 let estacoesDisponiveis=[],mapaConfig=null,marcadorConfig=null,estacaoConfigAtual='';
 let dbPromise=null,ultimaPlanilhaPorEstacao={};
+const NOTIFY_CFG_KEY='oort-agro-notify-v1',NOTIFY_EVERY_MS=3*60*60*1000,MONITOR_EVERY_MS=10*60*1000;
+let notifyCheckTimer=null,baroMonitorTimer=null,swRegistration=null;
 
 function atualizarClock(){document.getElementById('clock').textContent=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
 setInterval(atualizarClock,1000);atualizarClock();
@@ -432,6 +451,41 @@ async function getLocalizacaoEstacao(nome){
   const lon=parseFloat(e&&(e.lon??e.lng??e.longitude));
   return isFinite(lat)&&isFinite(lon)?{lat,lon}:null;
 }
+function weatherCacheKey(est,loc){return 'weather:'+est+':'+loc.lat.toFixed(3)+':'+loc.lon.toFixed(3);}
+function weatherURL(loc){
+  return WEATHER_API+'?latitude='+encodeURIComponent(loc.lat)+'&longitude='+encodeURIComponent(loc.lon)+
+    '&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,pressure_msl'+
+    '&hourly=precipitation_probability'+
+    '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,wind_speed_10m_max'+
+    '&timezone=auto&forecast_days=5';
+}
+async function obterPrevisaoEstacao(est,{forcar=false}={}){
+  const loc=await getLocalizacaoEstacao(est);
+  if(!loc)return {loc:null,data:null,cache:false};
+  const key=weatherCacheKey(est,loc);
+  const cached=await cacheGet(key);
+  if(cached&&cached.value&&!forcar&&Date.now()-cached.ts<20*60*1000)return {loc,data:cached.value,cache:true};
+  try{
+    const d=await fetchJSON(weatherURL(loc),12000);
+    await cacheSet(key,d);
+    return {loc,data:d,cache:false};
+  }catch(e){
+    if(cached&&cached.value)return {loc,data:cached.value,cache:true};
+    throw e;
+  }
+}
+function chanceChuva12h(d){
+  const h=d&&d.hourly;
+  if(!h||!Array.isArray(h.time)||!Array.isArray(h.precipitation_probability)){
+    const fallback=d&&d.daily&&d.daily.precipitation_probability_max&&d.daily.precipitation_probability_max[0];
+    return isFinite(parseFloat(fallback))?Math.round(parseFloat(fallback)):null;
+  }
+  const agora=(d.current&&d.current.time)||'';
+  let idx=h.time.findIndex(t=>t>=agora);
+  if(idx<0)idx=0;
+  const vals=h.precipitation_probability.slice(idx,idx+12).map(Number).filter(Number.isFinite);
+  return vals.length?Math.round(Math.max(...vals)):null;
+}
 async function atualizarPrevisaoExterna(){
   const card=document.getElementById('forecast-api');
   if(!card)return;
@@ -442,30 +496,27 @@ async function atualizarPrevisaoExterna(){
     card.innerHTML='<div class="forecast-head"><div><div class="forecast-kicker">API EXTERNA</div><div class="forecast-title">Localização não definida</div></div><div class="forecast-icon">📍</div></div><p class="forecast-desc">Defina o ponto exato da estação para ativar a previsão meteorológica.</p><button class="forecast-action" onclick="irParaConfig(\''+jsStr(est)+'\')">Definir localização</button>';
     return;
   }
-  const wkey='weather:'+est+':'+loc.lat.toFixed(3)+':'+loc.lon.toFixed(3);
-  const cached=await cacheGet(wkey);
+  const key=weatherCacheKey(est,loc),cached=await cacheGet(key);
   if(cached&&cached.value)renderPrevisaoAPI(cached.value,true);
   if(cached&&Date.now()-cached.ts<20*60*1000)return;
   try{
-    const url=WEATHER_API+'?latitude='+encodeURIComponent(loc.lat)+'&longitude='+encodeURIComponent(loc.lon)+'&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,pressure_msl&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,wind_speed_10m_max&timezone=auto&forecast_days=5';
-    const d=await fetchJSON(url,12000);
+    const r=await obterPrevisaoEstacao(est,{forcar:true});
     if(est!==estacaoAtual)return;
-    await cacheSet(wkey,d);
-    renderPrevisaoAPI(d,false);
+    renderPrevisaoAPI(r.data,false);
   }catch(e){
     if(!cached)card.innerHTML='<div class="forecast-head"><div><div class="forecast-kicker">API EXTERNA</div><div class="forecast-title">Previsão indisponível</div></div><div class="forecast-icon">⚠️</div></div><p class="forecast-desc">Não foi possível consultar a previsão agora.</p>';
   }
 }
 function renderPrevisaoAPI(d,cache){
   const card=document.getElementById('forecast-api');if(!card||!d.current)return;
-  const info=weatherInfo(d.current.weather_code);
+  const info=weatherInfo(d.current.weather_code),chuva12=chanceChuva12h(d);
   const days=(d.daily&&d.daily.time?d.daily.time:[]).slice(0,5).map((dia,i)=>{
     const wi=weatherInfo(d.daily.weather_code[i]);
     const nome=i===0?'Hoje':new Date(dia+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short'}).replace('.','');
     return '<div class="day-mini"><span>'+esc(nome)+'</span><b>'+wi.icon+'</b><small>'+fmt0(d.daily.temperature_2m_min[i])+'° / '+fmt0(d.daily.temperature_2m_max[i])+'°</small><em>💧 '+fmt0(d.daily.precipitation_probability_max[i])+'%</em></div>';
   }).join('');
   card.innerHTML='<div class="forecast-head"><div><div class="forecast-kicker">PREVISÃO GERAL · OPEN-METEO'+(cache?' · CACHE':'')+'</div><div class="forecast-title">'+esc(info.text)+'</div></div><div class="forecast-icon">'+info.icon+'</div></div>'+ 
-    '<div class="forecast-main"><strong>'+fmt(d.current.temperature_2m)+'°C</strong><div><span>Sensação '+fmt(d.current.apparent_temperature)+'°C</span><span>Umidade '+fmt0(d.current.relative_humidity_2m)+'%</span><span>Vento '+fmt(d.current.wind_speed_10m)+' km/h</span></div></div>'+ 
+    '<div class="forecast-main"><strong>'+fmt(d.current.temperature_2m)+'°C</strong><div><span>Sensação '+fmt(d.current.apparent_temperature)+'°C</span><span>Umidade '+fmt0(d.current.relative_humidity_2m)+'%</span><span>Chuva 12h '+(chuva12===null?'—':chuva12+'%')+'</span><span>Vento '+fmt(d.current.wind_speed_10m)+' km/h</span></div></div>'+ 
     '<div class="forecast-days">'+days+'</div>';
 }
 function weatherInfo(code){
@@ -482,38 +533,44 @@ function weatherInfo(code){
 }
 
 // ---------------- PREVISÃO BAROMÉTRICA LOCAL ----------------
-function renderPrevisaoBarometrica(dados){
-  const card=document.getElementById('forecast-baro');if(!card)return;
+function calcularEstadoBarometrico(dados){
   const validos=(dados||[]).map(d=>({t:new Date(d.Date),p:parseFloat(d.Press),h:parseFloat(d.UmiAr)})).filter(x=>!isNaN(x.t)&&isFinite(x.p));
-  if(validos.length<2){card.innerHTML='<div class="forecast-head"><div><div class="forecast-kicker">ESTAÇÃO · BARÔMETRO</div><div class="forecast-title">Dados insuficientes</div></div><div class="forecast-icon">🧭</div></div><p class="forecast-desc">São necessárias leituras anteriores de pressão para calcular a tendência local.</p>';return;}
-  const last=validos[validos.length-1];
-  const alvo=last.t.getTime()-3*3600000;
+  if(validos.length<2)return null;
+  const last=validos[validos.length-1],alvo=last.t.getTime()-3*3600000;
   let prev=validos[0];
   for(const x of validos){if(x.t.getTime()<=alvo)prev=x;else break;}
-  const horas=Math.max((last.t-prev.t)/3600000,0.25);
-  const delta3=(last.p-prev.p)*(3/horas);
-  const umid=isFinite(last.h)?last.h:null;
-  let icon='➡️',titulo='Tempo estável',desc='Sem indicação barométrica de chuva ou mudanças significativas no tempo nas próximas 6 horas.';
-  if(delta3<=-3){icon='🌧️';titulo='Instabilidade aumentando';desc='Há sinal barométrico de instabilidade nas próximas 3 horas, com possibilidade de chuva ou mudança rápida do tempo.';}
-  else if(delta3<=-1.5){icon='🌦️';titulo='Tempo em deterioração';desc='A tendência indica possível mudança do tempo nas próximas 3 a 6 horas; acompanhe chuva, vento e umidade.';}
+  const horas=Math.max((last.t-prev.t)/3600000,0.25),delta3=(last.p-prev.p)*(3/horas),umid=isFinite(last.h)?last.h:null;
+  let icon='➡️',titulo='Tempo estável',desc='Sem indicação barométrica de chuva ou mudanças significativas no tempo nas próximas 6 horas.',alertaBrusco=false;
+  if(delta3<=-3){icon='🌧️';titulo='Instabilidade aumentando';desc='Há sinal barométrico de instabilidade nas próximas 3 horas, com possibilidade de chuva ou mudança rápida do tempo.';alertaBrusco=true;}
+  else if(delta3<=-1.5){icon='🌦️';titulo='Tempo em deterioração';desc='A tendência indica possível mudança do tempo nas próximas 3 a 6 horas; acompanhe chuva, vento e umidade.';alertaBrusco=true;}
   else if(delta3<=-.5){icon='↘️';titulo='Possível mudança';desc='Pressão em queda lenta. Pode haver alteração do tempo nas próximas 6 horas.';}
   else if(delta3<.5){
     icon=umid!==null&&umid>=80?'🌫️':'⛅';
     titulo=umid!==null&&umid>=80?'Estável e úmido':'Tempo estável';
     desc=umid!==null&&umid>=80?'Sem indicação barométrica de chuva nas próximas 6 horas, mas a umidade elevada favorece neblina ou condensação.':'Sem indicação barométrica de chuva ou mudanças significativas no tempo nas próximas 6 horas.';
-  }
-  else if(delta3<1.5){icon='↗️';titulo='Tempo estável';desc='Pressão em elevação. Sem indicação barométrica de chuva ou alterações significativas no tempo nas próximas 8 horas.';}
+  } else if(delta3<1.5){icon='↗️';titulo='Tempo estável';desc='Pressão em elevação. Sem indicação barométrica de chuva ou alterações significativas no tempo nas próximas 8 horas.';}
   else{icon='☀️';titulo='Tempo firme';desc='Pressão em elevação consistente. Sem indicação barométrica de chuva ou alterações significativas no tempo nas próximas 12 horas.';}
-  card.innerHTML='<div class="forecast-head"><div><div class="forecast-kicker">PREVISÃO LOCAL · BARÔMETRO</div><div class="forecast-title">'+titulo+'</div></div><div class="forecast-icon">'+icon+'</div></div>'+ 
-    '<div class="baro-stats"><div><span>Pressão</span><b>'+fmt1(last.p)+' hPa</b></div><div><span>Tendência 3h</span><b class="'+(delta3<-.5?'down':delta3>.5?'up':'')+'">'+(delta3>0?'+':'')+delta3.toFixed(1)+' hPa</b></div></div>'+ 
-    '<p class="forecast-desc">'+desc+'</p><div class="forecast-foot">Estimativa heurística da própria estação com base na tendência barométrica; confirme com a previsão meteorológica geral.</div>';
+  return {last,delta3,umid,icon,titulo,desc,alertaBrusco};
+}
+function renderPrevisaoBarometrica(dados){
+  const card=document.getElementById('forecast-baro');if(!card)return;
+  const e=calcularEstadoBarometrico(dados);
+  if(!e){card.innerHTML='<div class="forecast-head"><div><div class="forecast-kicker">ESTAÇÃO · BARÔMETRO</div><div class="forecast-title">Dados insuficientes</div></div><div class="forecast-icon">🧭</div></div><p class="forecast-desc">São necessárias leituras anteriores de pressão para calcular a tendência local.</p>';return;}
+  card.innerHTML='<div class="forecast-head"><div><div class="forecast-kicker">PREVISÃO LOCAL · BARÔMETRO</div><div class="forecast-title">'+e.titulo+'</div></div><div class="forecast-icon">'+e.icon+'</div></div>'+ 
+    '<div class="baro-stats"><div><span>Pressão</span><b>'+fmt1(e.last.p)+' hPa</b></div><div><span>Tendência 3h</span><b class="'+(e.delta3<-.5?'down':e.delta3>.5?'up':'')+'">'+(e.delta3>0?'+':'')+e.delta3.toFixed(1)+' hPa</b></div></div>'+ 
+    '<p class="forecast-desc">'+e.desc+'</p><div class="forecast-foot">Estimativa heurística da própria estação com base na tendência barométrica; confirme com a previsão meteorológica geral.</div>';
+  avaliarAlertaBarometrico(estacaoAtual,e).catch(()=>{});
 }
 
 // ---------------- CONFIGURAÇÕES / MAPA ----------------
 function renderConfigLista(){
   const body=document.getElementById('config-body');
   if(!estacoesDisponiveis.length){body.innerHTML='<div class="state-msg"><div class="spinner"></div><p>Carregando estações…</p></div>';return;}
-  body.innerHTML='<div class="config-intro"><b>Localização das estações</b><p>Selecione uma estação e marque no mapa o ponto exato onde ela está instalada. Essa posição será usada pela previsão meteorológica externa.</p></div><div class="config-list">'+estacoesDisponiveis.map(e=>'<button class="config-station" onclick="abrirConfigEstacao(\''+jsStr(e.nome)+'\')"><span><b>'+esc(e.codigo||e.nome)+'</b><small>'+esc(e.nome)+'</small></span><span>›</span></button>').join('')+'</div><div id="config-editor"></div>';
+  const ncfg=getNotifyConfig();
+  const nsel=ncfg.station||estacaoAtual||estacoesDisponiveis[0].nome;
+  const notifyOptions=estacoesDisponiveis.map(e=>'<option value="'+escAttr(e.nome)+'" '+(e.nome===nsel?'selected':'')+'>'+esc(e.codigo||e.nome)+'</option>').join('');
+  body.innerHTML='<div class="notify-card"><div class="notify-head"><div><b>Notificações meteorológicas</b><p>Resumo a cada 3 h com temperatura da estação e chance de chuva nas próximas 12 h. Queda brusca de pressão gera um alerta único por evento.</p></div><span>🔔</span></div><div class="notify-controls"><label>Estação monitorada<select id="notify-station" onchange="alterarEstacaoNotificacao(this.value)">'+notifyOptions+'</select></label><button id="notify-btn" class="btn-notify" onclick="alternarNotificacoes()">Ativar notificações</button></div><div id="notify-status" class="notify-status"></div></div><div class="config-intro"><b>Localização das estações</b><p>Selecione uma estação e marque no mapa o ponto exato onde ela está instalada. Essa posição será usada pela previsão meteorológica externa.</p></div><div class="config-list">'+estacoesDisponiveis.map(e=>'<button class="config-station" onclick="abrirConfigEstacao(\''+jsStr(e.nome)+'\')"><span><b>'+esc(e.codigo||e.nome)+'</b><small>'+esc(e.nome)+'</small></span><span>›</span></button>').join('')+'</div><div id="config-editor"></div>';
+  setTimeout(atualizarUINotificacoes,0);
 }
 async function abrirConfigEstacao(nome){
   estacaoConfigAtual=nome;
@@ -561,6 +618,127 @@ async function salvarLocalizacao(){
   if(estacaoConfigAtual===estacaoAtual&&dadosAtivos.length)atualizarPrevisaoExterna();
 }
 function fecharConfigMapa(){if(mapaConfig){mapaConfig.remove();mapaConfig=null;marcadorConfig=null;}const e=document.getElementById('config-editor');if(e)e.innerHTML='';}
+
+// ---------------- NOTIFICAÇÕES ----------------
+function getNotifyConfig(){
+  try{return Object.assign({enabled:false,station:'',lastPeriodic:0},JSON.parse(localStorage.getItem(NOTIFY_CFG_KEY)||'{}'));}
+  catch(e){return {enabled:false,station:'',lastPeriodic:0};}
+}
+function setNotifyConfig(cfg){localStorage.setItem(NOTIFY_CFG_KEY,JSON.stringify(cfg));return cfg;}
+function nomeEstacao(est){const e=estacoesDisponiveis.find(x=>x.nome===est);return e?(e.codigo||e.nome):est;}
+async function registrarServiceWorker(){
+  if(!('serviceWorker' in navigator)||!window.isSecureContext)return null;
+  try{swRegistration=await navigator.serviceWorker.register('./oort-agro-sw.js');return swRegistration;}
+  catch(e){console.warn('Service Worker indisponível',e);return null;}
+}
+async function mostrarNotificacao(titulo,corpo,tag){
+  if(!('Notification' in window)||Notification.permission!=='granted')return false;
+  const opts={body:corpo,icon:'https://raw.githubusercontent.com/oortbrasil/assets/main/icon.png',badge:'https://raw.githubusercontent.com/oortbrasil/assets/main/icon.png',tag,renotify:false,data:{url:location.href}};
+  try{
+    const reg=swRegistration||await registrarServiceWorker();
+    if(reg&&reg.showNotification){await reg.showNotification(titulo,opts);return true;}
+    new Notification(titulo,opts);return true;
+  }catch(e){console.warn('Falha ao exibir notificação',e);return false;}
+}
+function atualizarUINotificacoes(msg='',classe=''){
+  const btn=document.getElementById('notify-btn'),st=document.getElementById('notify-status'),sel=document.getElementById('notify-station');
+  if(!btn||!st)return;
+  const cfg=getNotifyConfig();
+  if(sel&&cfg.station&&[...sel.options].some(o=>o.value===cfg.station))sel.value=cfg.station;
+  btn.textContent=cfg.enabled?'Desativar notificações':'Ativar notificações';
+  btn.classList.toggle('off',cfg.enabled);
+  if(msg){st.textContent=msg;st.className='notify-status '+classe;return;}
+  if(!('Notification' in window)){st.textContent='Este navegador não oferece notificações web.';st.className='notify-status err';return;}
+  if(!window.isSecureContext){st.textContent='As notificações exigem HTTPS.';st.className='notify-status warn';return;}
+  if(cfg.enabled){
+    const resto=Math.max(0,NOTIFY_EVERY_MS-(Date.now()-(cfg.lastPeriodic||0))),h=Math.ceil(resto/3600000);
+    st.textContent='Ativas para '+nomeEstacao(cfg.station)+(cfg.lastPeriodic?' · próximo resumo em até '+h+' h':' · aguardando primeiro ciclo');st.className='notify-status ok';
+  }else{st.textContent=Notification.permission==='denied'?'Permissão de notificações bloqueada no navegador.':'Desativadas.';st.className='notify-status';}
+}
+function alterarEstacaoNotificacao(est){
+  const cfg=getNotifyConfig();
+  if(!cfg.enabled)return;
+  cfg.station=est;cfg.lastPeriodic=Date.now();setNotifyConfig(cfg);
+  localStorage.removeItem('oort-baro-alert:'+est);
+  atualizarUINotificacoes('Estação monitorada alterada para '+nomeEstacao(est)+'.','ok');
+  monitorarBarometroNotificacao().catch(()=>{});
+}
+async function alternarNotificacoes(){
+  const cfg=getNotifyConfig(),sel=document.getElementById('notify-station');
+  if(cfg.enabled){
+    cfg.enabled=false;setNotifyConfig(cfg);pararMonitorNotificacoes();atualizarUINotificacoes('Notificações desativadas.','');return;
+  }
+  if(!('Notification' in window)){atualizarUINotificacoes('Este navegador não oferece notificações web.','err');return;}
+  if(!window.isSecureContext){atualizarUINotificacoes('Abra o app por HTTPS para ativar notificações.','warn');return;}
+  const station=(sel&&sel.value)||estacaoAtual;
+  const loc=await getLocalizacaoEstacao(station);
+  if(!loc){atualizarUINotificacoes('Defina primeiro a localização da estação para calcular a chance de chuva em 12 h.','warn');return;}
+  let perm=Notification.permission;
+  if(perm!=='granted')perm=await Notification.requestPermission();
+  if(perm!=='granted'){atualizarUINotificacoes('Permissão não concedida. Ative-a nas configurações do navegador/sistema.','warn');return;}
+  await registrarServiceWorker();
+  cfg.enabled=true;cfg.station=station;cfg.lastPeriodic=Date.now();setNotifyConfig(cfg);
+  iniciarMonitorNotificacoes();
+  await mostrarNotificacao('Oort Agro · notificações ativadas','Monitorando '+nomeEstacao(cfg.station)+'. Resumo meteorológico a cada 3 horas.','oort-notify-enabled');
+  atualizarUINotificacoes('Ativas. O alerta barométrico será enviado uma única vez por evento.','ok');
+}
+function pararMonitorNotificacoes(){
+  if(notifyCheckTimer){clearInterval(notifyCheckTimer);notifyCheckTimer=null;}
+  if(baroMonitorTimer){clearInterval(baroMonitorTimer);baroMonitorTimer=null;}
+}
+function iniciarMonitorNotificacoes(){
+  pararMonitorNotificacoes();
+  const cfg=getNotifyConfig();
+  if(!cfg.enabled||!('Notification' in window)||Notification.permission!=='granted')return;
+  notifyCheckTimer=setInterval(()=>verificarResumoPeriodico().catch(()=>{}),60*1000);
+  baroMonitorTimer=setInterval(()=>monitorarBarometroNotificacao().catch(()=>{}),MONITOR_EVERY_MS);
+  verificarResumoPeriodico().catch(()=>{});
+  monitorarBarometroNotificacao().catch(()=>{});
+}
+async function obterDadosMonitoramento(est){
+  if(est===estacaoAtual&&dadosAtivos.length)return dadosAtivos;
+  let plist=await cacheGet('planilhas:'+est),planilhas=plist&&Array.isArray(plist.value)?plist.value:null;
+  if(!planilhas||!planilhas.length){
+    try{const d=await fetchJSON(API+'?action=planilhas&estacao='+encodeURIComponent(est),12000);if(d.ok){planilhas=d.planilhas||[];await cacheSet('planilhas:'+est,planilhas);}}catch(e){}
+  }
+  if(!planilhas||!planilhas.length)return [];
+  const plan=planilhas[0].nome,key='dados:'+est+':'+plan;
+  try{
+    const d=await fetchJSON(API+'?action=dados&estacao='+encodeURIComponent(est)+'&planilha='+encodeURIComponent(plan),18000);
+    if(d.ok&&Array.isArray(d.dados)&&d.dados.length){await cacheSet(key,d.dados);return d.dados;}
+  }catch(e){}
+  const c=await cacheGet(key);return c&&Array.isArray(c.value)?c.value:[];
+}
+async function verificarResumoPeriodico(){
+  const cfg=getNotifyConfig();
+  if(!cfg.enabled||Notification.permission!=='granted'||!cfg.station)return;
+  if(Date.now()-(cfg.lastPeriodic||0)<NOTIFY_EVERY_MS)return;
+  const [dados,w]=await Promise.all([obterDadosMonitoramento(cfg.station),obterPrevisaoEstacao(cfg.station,{forcar:true}).catch(()=>({data:null}))]);
+  const last=dados&&dados.length?dados[dados.length-1]:null;
+  if(!last||!w.data)return;
+  const temp=parseFloat(last.TempAr),chuva=chanceChuva12h(w.data);
+  const corpo='Temp: '+(isFinite(temp)?temp.toFixed(1)+'°C':'—')+', Chance de chuva 12h: '+(chuva===null?'—':chuva+'%');
+  const ok=await mostrarNotificacao('Oort Agro · '+nomeEstacao(cfg.station),corpo,'oort-weather-3h');
+  if(ok){cfg.lastPeriodic=Date.now();setNotifyConfig(cfg);atualizarUINotificacoes();}
+}
+async function monitorarBarometroNotificacao(){
+  const cfg=getNotifyConfig();
+  if(!cfg.enabled||!cfg.station)return;
+  const dados=await obterDadosMonitoramento(cfg.station);
+  const estado=calcularEstadoBarometrico(dados);
+  if(estado)await avaliarAlertaBarometrico(cfg.station,estado);
+}
+async function avaliarAlertaBarometrico(est,estado){
+  const cfg=getNotifyConfig();
+  if(!cfg.enabled||cfg.station!==est||!estado||Notification.permission!=='granted')return;
+  const key='oort-baro-alert:'+est,ativo=localStorage.getItem(key)==='1';
+  if(estado.alertaBrusco&&!ativo){
+    const corpo=estado.titulo+': '+estado.desc+' Tendência: '+(estado.delta3>0?'+':'')+estado.delta3.toFixed(1)+' hPa/3h.';
+    const ok=await mostrarNotificacao('⚠️ Oort Agro · mudança brusca',corpo,'oort-baro-alert');
+    if(ok)localStorage.setItem(key,'1');
+  }else if(!estado.alertaBrusco&&ativo){localStorage.removeItem(key);}
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){verificarResumoPeriodico().catch(()=>{});monitorarBarometroNotificacao().catch(()=>{});}});
 
 // ---------------- RENDER DOS DADOS ----------------
 function renderizar(dados){
@@ -702,7 +880,8 @@ function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 function escAttr(s){return esc(s);}
 function jsStr(s){return String(s??'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r?\n/g,' ');}
 
-init();
+registrarServiceWorker();
+init().finally(()=>iniciarMonitorNotificacoes());
 
 </script>
 </body>
