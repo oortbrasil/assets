@@ -6,178 +6,590 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Oort Agro">
-<meta name="theme-color" content="#0f2027">
+<meta name="theme-color" content="#0a1520">
 <title>OORT TECNOLOGIAS – Estações-Sonda AgroMeteorológicas</title>
 <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/oortbrasil/assets/main/icon.png">
 <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/oortbrasil/assets/main/icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-:root{--bg:#0f2027;--surface:#1a3040;--card:#162535;--border:#1e3a4f;--accent:#00d4a0;--accent2:#00a8cc;--text:#e8f4f0;--muted:#6a8fa0;--radius:14px;--safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px)}
+:root{
+  --bg:#080f1a;--surface:#0e1e2e;--card:#0d1b29;--border:#1a3348;
+  --accent:#00e5b0;--accent2:#00c8f0;--text:#e0f0f8;--muted:#5a8099;
+  --radius:14px;
+  --safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
+  --neon-green:rgba(0,229,176,0.8);--neon-blue:rgba(0,200,240,0.8);
+  --neon-orange:rgba(255,120,80,0.8);--neon-purple:rgba(180,140,255,0.8);
+}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;min-height:100dvh;overflow-x:hidden}
-.header{background:linear-gradient(160deg,#0a1a10 0%,#0f2820 60%,#0f2027 100%);padding:calc(var(--safe-top) + 12px) 16px 12px;border-bottom:1px solid #1a3a2a;position:sticky;top:0;z-index:100}
-.header-logo-wrap{display:flex;justify-content:center;align-items:center;padding:8px 0 10px}
-.header-logo-wrap img{max-height:110px;max-width:88%;object-fit:contain}
-.header-sub{text-align:center;font-size:11px;color:var(--muted);letter-spacing:.4px;margin-bottom:8px}
-.header-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.header-time{font-size:11px;color:var(--accent);font-variant-numeric:tabular-nums;flex-shrink:0}
-.period-tabs{display:flex;gap:6px;background:var(--surface);border-radius:10px;padding:3px;flex:1;max-width:280px}
-.period-tab{flex:1;text-align:center;font-size:12px;font-weight:600;padding:5px 0;border-radius:8px;color:var(--muted);cursor:pointer;transition:all .2s;user-select:none;-webkit-user-select:none}
-.period-tab.active{background:var(--accent);color:#0f2027}
-.main-nav{display:flex;background:transparent}
-.main-nav-tab{flex:1;text-align:center;padding:10px 8px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;user-select:none;-webkit-user-select:none}
-.main-nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-.controls{padding:12px 16px 6px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
-.control-group{display:flex;flex-direction:column;gap:4px;flex:1;min-width:130px}
-.control-group label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
-select{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:10px;font-size:14px;width:100%;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a8fa0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
-select:focus{outline:none;border-color:var(--accent)}
-.btn-refresh{background:var(--accent);color:#0f2027;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;align-self:flex-end}
-.btn-refresh:active{opacity:.8}
-.ultima-leitura{margin:0 16px 6px;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:10px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px}
-.ultima-leitura .ul-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0}
-.ultima-leitura.stale .ul-dot{background:#f0a500}
-.ultima-leitura.offline .ul-dot{background:#e05c5c}
-.summary{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:8px 16px 4px}
-.summary-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
-.summary-card .s-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-.summary-card .s-value{font-size:26px;font-weight:700;letter-spacing:-1px;margin-top:4px;line-height:1}
-.summary-card .s-unit{font-size:13px;font-weight:400;color:var(--muted)}
-.summary-card .s-range{font-size:11px;color:var(--muted);margin-top:6px}
-.s-temp{color:#ff7e5f}.s-umi{color:var(--accent2)}.s-chuva{color:var(--accent)}.s-vento{color:#b8a0ff}
-.charts{padding:8px 16px}.chart-section{margin-bottom:16px}
-.section-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
-.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
-.chart-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 12px 8px;margin-bottom:10px}
-.chart-title{font-size:12px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px}
-.chart-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-canvas{display:block;width:100%!important;max-height:180px}
-.rain-bars{display:flex;gap:3px;align-items:flex-end;height:110px;padding-bottom:20px;position:relative}
-.rain-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;height:100%;justify-content:flex-end}
-.rain-bar{width:100%;background:var(--accent);border-radius:3px 3px 0 0;min-height:2px}
-.rain-val{font-size:8px;color:var(--accent);font-weight:600;white-space:nowrap}
-.rain-label{font-size:9px;color:var(--muted);white-space:nowrap}
-.rain-axis{position:absolute;bottom:0;left:0;right:0;border-top:1px solid var(--border)}
-.bat-indicator{display:flex;align-items:center;gap:12px;padding:4px 0}
-.bat-bar-bg{flex:1;height:20px;background:var(--surface);border-radius:6px;overflow:hidden;border:1px solid var(--border)}
-.bat-bar-fill{height:100%;border-radius:5px;transition:width .6s ease}
-.bat-val{font-size:20px;font-weight:700;min-width:54px;text-align:right}
-.gauge-row{display:flex;gap:10px}
-.gauge-item{flex:1;text-align:center;padding:12px 8px;background:var(--surface);border-radius:10px}
-.gauge-num{font-size:28px;font-weight:700;letter-spacing:-1px}
-.gauge-sub{font-size:10px;color:var(--muted);margin-top:2px}
-.gauge-badge{display:inline-block;margin-top:6px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px}
-.solo-row{display:flex;gap:10px;margin-top:4px}
-.solo-card{flex:1;background:var(--surface);border-radius:10px;padding:12px;text-align:center}
-.solo-val{font-size:24px;font-weight:700}
-.solo-lbl{font-size:10px;color:var(--muted);margin-top:2px}
-.relatorios-list{padding:12px 16px}
-.rel-item{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;cursor:pointer;text-decoration:none;color:var(--text);transition:border-color .2s}
-.rel-item:active{border-color:var(--accent)}
-.rel-icon{font-size:28px;flex-shrink:0}
-.rel-info{flex:1;min-width:0}
-.rel-nome{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rel-open{font-size:11px;color:var(--accent);margin-top:3px}
-.rel-arrow{color:var(--muted);font-size:16px;flex-shrink:0}
-.state-msg{text-align:center;padding:48px 20px;color:var(--muted);font-size:14px}
-.state-msg .icon{font-size:36px;margin-bottom:12px}
-.state-msg p{line-height:1.5}
-.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;
+  min-height:100dvh;overflow-x:hidden;
+  transition:background 1.2s ease;
+}
+
+/* ── DYNAMIC WEATHER BACKGROUND ── */
+body.weather-sunny{background:linear-gradient(160deg,#061520 0%,#0a2535 40%,#0d3045 100%);}
+body.weather-rainy{background:linear-gradient(160deg,#040a12 0%,#060e18 40%,#080f1a 100%);}
+body.weather-storm{background:linear-gradient(160deg,#040812 0%,#06090f 40%,#060a13 100%);}
+
+/* Global atmospheric canvas */
+#global-sky-canvas,#global-rain-canvas{
+  position:fixed;inset:0;width:100%;height:100%;
+  pointer-events:none;z-index:0;
+}
+#global-sky-canvas{z-index:0;}
+#global-rain-canvas{z-index:1;}
+
+.app-content{position:relative;z-index:2;}
+
+/* ── HEADER ── */
+.header{
+  background:linear-gradient(160deg,rgba(6,16,24,0.95) 0%,rgba(10,24,36,0.97) 60%,rgba(8,15,26,0.95) 100%);
+  padding:calc(var(--safe-top) + 10px) 16px 10px;
+  border-bottom:1px solid rgba(0,229,176,0.15);
+  position:sticky;top:0;z-index:100;
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+}
+.header-logo-wrap{display:flex;justify-content:center;align-items:center;padding:6px 0 8px;}
+.header-logo-wrap img{max-height:100px;max-width:88%;object-fit:contain;}
+.header-sub{text-align:center;font-size:11px;color:var(--muted);letter-spacing:.4px;margin-bottom:8px;}
+.header-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.header-time{font-size:11px;color:var(--accent);font-variant-numeric:tabular-nums;flex-shrink:0;}
+
+/* ── PERIOD TABS ── */
+.period-tabs{display:flex;gap:5px;background:rgba(14,30,46,0.8);border-radius:10px;padding:3px;flex:1;max-width:260px;border:1px solid var(--border);}
+.period-tab{flex:1;text-align:center;font-size:12px;font-weight:600;padding:5px 0;border-radius:7px;color:var(--muted);cursor:pointer;transition:all .2s;user-select:none;}
+.period-tab.active{background:linear-gradient(135deg,var(--accent),#00b090);color:#060f1a;}
+
+/* ── NAV ── */
+.main-nav{display:flex;background:transparent;margin:8px -16px -10px;border-top:1px solid rgba(0,229,176,0.1);}
+.main-nav-tab{flex:1;text-align:center;padding:10px 6px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;user-select:none;}
+.main-nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* ── CONTROLS ── */
+.controls{padding:12px 16px 6px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
+.control-group{display:flex;flex-direction:column;gap:4px;flex:1;min-width:130px;}
+.control-group label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;}
+select{
+  background:var(--surface);border:1px solid var(--border);color:var(--text);
+  padding:10px 32px 10px 12px;border-radius:10px;font-size:14px;width:100%;
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a8099' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+}
+select:focus{outline:none;border-color:var(--accent);}
+.btn-refresh{
+  background:linear-gradient(135deg,var(--accent),#00b090);color:#060f1a;
+  border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700;
+  cursor:pointer;flex-shrink:0;align-self:flex-end;transition:opacity .2s;
+}
+.btn-refresh:active{opacity:.8;}
+
+/* ── ÚLTIMA LEITURA ── */
+.ultima-leitura{
+  margin:0 16px 6px;padding:8px 12px;
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;
+}
+.ultima-leitura .ul-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;animation:pulse-dot 2s ease infinite;}
+@keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:.4;}}
+.ultima-leitura.stale .ul-dot{background:#f0a500;animation:none;}
+.ultima-leitura.offline .ul-dot{background:#e05c5c;animation:none;}
+
+/* ── SUMMARY CARDS ── */
+.summary{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:8px 16px 4px;}
+.summary-card{
+  background:linear-gradient(145deg,var(--card),rgba(10,20,32,0.9));
+  border:1px solid var(--border);border-radius:var(--radius);padding:14px;
+  position:relative;overflow:hidden;
+  transition:border-color .3s;
+}
+.summary-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,0.03),transparent);
+  pointer-events:none;
+}
+.summary-card .s-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.summary-card .s-value{font-size:28px;font-weight:700;letter-spacing:-1px;margin-top:4px;line-height:1;}
+.summary-card .s-unit{font-size:13px;font-weight:400;color:var(--muted);}
+.summary-card .s-range{font-size:11px;color:var(--muted);margin-top:6px;}
+.s-temp{color:#ff7e5f;text-shadow:0 0 20px rgba(255,126,95,0.4);}
+.s-umi{color:var(--accent2);text-shadow:0 0 20px rgba(0,200,240,0.4);}
+.s-chuva{color:var(--accent);text-shadow:0 0 20px rgba(0,229,176,0.4);}
+.s-press{color:#b8a0ff;text-shadow:0 0 20px rgba(184,160,255,0.4);}
+
+/* ── SECTION LABEL ── */
+.section-label{
+  font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;
+  margin:0 16px 10px;display:flex;align-items:center;gap:8px;padding-top:12px;
+}
+.section-label::after{content:'';flex:1;height:1px;background:linear-gradient(to right,var(--border),transparent);}
+
+/* ══════════════════════════════════════════════════
+   CALENDÁRIO PLUVIOMÉTRICO — INTEGRADO NA TELA PRINCIPAL
+   ══════════════════════════════════════════════════ */
+.calendar-wrapper{padding:0 16px 4px;position:relative;}
+
+.calendar-stage{
+  position:relative;
+  border-radius:24px;
+  background:linear-gradient(155deg,rgba(10,20,32,0.96) 0%,rgba(6,12,22,0.98) 100%);
+  border:1px solid rgba(0,229,176,0.2);
+  box-shadow:0 20px 60px rgba(0,0,0,0.5),inset 0 1px 1px rgba(255,255,255,0.08);
+  overflow:hidden;
+  transition:border-color 1s ease,box-shadow 1s ease;
+}
+.calendar-stage.cal-sunny{
+  border-color:rgba(255,220,100,0.4);
+  box-shadow:0 20px 60px rgba(2,100,160,0.3),inset 0 1px 1px rgba(255,255,255,0.15);
+}
+.calendar-stage.cal-rainy{
+  border-color:rgba(56,189,248,0.4);
+  box-shadow:0 20px 60px rgba(0,80,160,0.4),inset 0 1px 1px rgba(56,189,248,0.1);
+}
+
+/* Sky layer for sunny days */
+.cal-sky-layer{
+  position:absolute;inset:0;
+  background:radial-gradient(circle at 85% 10%,rgba(254,240,138,0.4) 0%,rgba(253,224,71,0.1) 25%,transparent 50%),
+             linear-gradient(165deg,#0369a1 0%,#0284c7 50%,#38bdf8 90%);
+  opacity:0;transition:opacity 1s cubic-bezier(.4,0,.2,1);
+  pointer-events:none;z-index:0;
+}
+.calendar-stage.cal-sunny .cal-sky-layer{opacity:1;}
+
+/* Canvas for calendar rain */
+#cal-rain-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5;}
+
+.cal-inner{position:relative;z-index:10;padding:18px 20px 14px;}
+
+/* Calendar top bar */
+.cal-topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:10px;margin-bottom:16px;
+}
+.cal-month-nav{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(10,20,32,0.6);backdrop-filter:blur(16px);
+  padding:5px 10px;border-radius:50px;
+  border:1px solid rgba(255,255,255,0.1);
+}
+.cal-nav-btn{
+  width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.06);color:#fff;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:12px;
+  transition:all .2s;
+}
+.cal-nav-btn:hover{background:rgba(255,255,255,0.18);transform:scale(1.08);}
+.cal-month-label{font-size:.95rem;font-weight:700;color:#fff;min-width:140px;text-align:center;}
+
+/* Gauge type selector */
+.gauge-type-wrap{display:flex;align-items:center;gap:8px;}
+.gauge-type-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;}
+.gauge-type-select{
+  background:rgba(10,20,32,0.7);border:1px solid rgba(0,229,176,0.3);
+  color:var(--text);padding:5px 24px 5px 10px;border-radius:8px;font-size:11px;
+  appearance:none;-webkit-appearance:none;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2300e5b0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;
+}
+.gauge-type-select:focus{outline:none;border-color:var(--accent);}
+
+/* Calendar grid layout */
+.cal-layout{
+  display:grid;
+  grid-template-columns:1fr 280px;
+  gap:16px;align-items:start;
+}
+@media(max-width:780px){.cal-layout{grid-template-columns:1fr;}}
+
+/* Weekday labels */
+.cal-weekdays{
+  display:grid;grid-template-columns:repeat(7,1fr);
+  margin-bottom:6px;text-align:center;
+}
+.cal-weekday-lbl{
+  font-size:.62rem;font-weight:700;letter-spacing:.8px;
+  text-transform:uppercase;color:rgba(200,220,240,0.5);
+}
+
+/* Days grid */
+.cal-days-grid{
+  display:grid;grid-template-columns:repeat(7,1fr);
+  grid-auto-rows:clamp(48px,8vw,70px);
+  gap:5px;align-items:center;justify-items:center;
+}
+.cal-day-slot{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+
+/* Day tile — liquid style */
+.cal-day-tile{
+  position:relative;
+  width:var(--size-pct,74%);height:var(--size-pct,74%);
+  border-radius:var(--tile-radius,13px);
+  background:var(--tile-bg,rgba(14,30,46,0.6));
+  border:1px solid var(--tile-border,rgba(255,255,255,0.08));
+  box-shadow:var(--tile-shadow,0 3px 8px rgba(0,0,0,0.3));
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;overflow:hidden;
+  transform:translate3d(var(--push-x,0px),var(--push-y,0px),0) scale(var(--hover-scale,1));
+  transition:
+    width .5s cubic-bezier(.22,1,.36,1),
+    height .5s cubic-bezier(.22,1,.36,1),
+    transform .35s cubic-bezier(.22,1,.36,1),
+    background .4s ease,border-color .3s ease,box-shadow .3s ease;
+  will-change:transform,width,height;
+}
+.cal-liquid-fill{
+  position:absolute;bottom:0;left:0;right:0;
+  height:var(--water-level,0%);
+  background:var(--liquid-grad,linear-gradient(180deg,rgba(0,229,176,0.4),rgba(0,180,140,0.7)));
+  border-top:1px solid rgba(255,255,255,0.3);
+  transition:height .6s cubic-bezier(.22,1,.36,1);
+  pointer-events:none;z-index:1;
+}
+.cal-day-tile::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(145deg,rgba(255,255,255,0.18) 0%,transparent 55%);
+  pointer-events:none;z-index:2;
+}
+.cal-tile-drops{
+  position:absolute;inset:0;
+  background-image:
+    radial-gradient(circle at 25% 30%,rgba(255,255,255,0.7) 1px,transparent 2px),
+    radial-gradient(circle at 72% 65%,rgba(255,255,255,0.65) 1.5px,transparent 2.5px),
+    radial-gradient(circle at 58% 25%,rgba(255,255,255,0.6) 1px,transparent 2px);
+  opacity:var(--droplet-opacity,0);pointer-events:none;z-index:2;
+}
+.cal-day-num{position:relative;z-index:3;font-size:var(--num-size,.8rem);font-weight:800;color:#fff;line-height:1;text-shadow:0 1px 5px rgba(0,0,0,.7);}
+.cal-day-mm{position:relative;z-index:3;font-size:.58rem;font-weight:700;color:#a8e8d8;margin-top:1px;letter-spacing:-.1px;opacity:var(--mm-opacity,0);text-shadow:0 1px 3px rgba(0,0,0,.8);}
+.cal-day-tile.cal-selected{
+  border-color:#fff!important;
+  box-shadow:0 10px 24px rgba(0,0,0,.55),0 0 20px rgba(0,229,176,.6),inset 0 1px 2px rgba(255,255,255,.8)!important;
+  z-index:10;
+}
+
+/* BAR STYLE gauge (classic) */
+.cal-day-tile.style-bars .cal-liquid-fill{display:none;}
+.cal-day-tile.style-bars{
+  flex-direction:column;justify-content:flex-end;
+  padding-bottom:4px;
+  background:rgba(10,22,34,0.5)!important;
+  border-color:rgba(0,229,176,0.15)!important;
+}
+.cal-day-tile.style-bars .cal-bar-fill{
+  position:absolute;bottom:0;left:0;right:0;
+  height:var(--bar-h,0%);
+  background:linear-gradient(180deg,rgba(0,229,176,0.7),rgba(0,180,140,0.9));
+  border-radius:0 0 3px 3px;
+  transition:height .5s cubic-bezier(.22,1,.36,1);
+  pointer-events:none;z-index:1;
+}
+.cal-day-tile.style-bars .cal-day-num{margin-bottom:2px;}
+.cal-bar-fill{display:none;}
+.cal-day-tile.style-bars .cal-bar-fill{display:block;}
+.cal-day-tile.style-bars .cal-tile-drops{display:none;}
+
+/* Legend */
+.cal-legend{
+  display:flex;align-items:center;gap:10px;
+  margin-top:12px;padding-top:10px;
+  border-top:1px solid rgba(255,255,255,0.08);
+  font-size:.7rem;color:rgba(200,220,240,.7);
+  flex-wrap:wrap;
+}
+.cal-legend-items{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.cal-legend-item{display:flex;align-items:center;gap:4px;}
+.cal-legend-swatch{display:inline-block;border-radius:4px;border:1px solid rgba(255,255,255,.25);}
+
+/* Inspector panel */
+.cal-inspector{
+  position:relative;border-radius:20px;
+  background:linear-gradient(150deg,rgba(14,28,44,0.92) 0%,rgba(8,16,28,0.96) 70%);
+  border:1px solid rgba(255,255,255,0.14);
+  box-shadow:0 16px 40px rgba(0,0,0,.55),inset 0 1px 1px rgba(255,255,255,.25);
+  padding:20px;overflow:hidden;
+  transition:background .8s ease;
+}
+.calendar-stage.cal-sunny .cal-inspector{
+  background:linear-gradient(150deg,rgba(10,55,88,0.88) 0%,rgba(5,70,105,0.94) 60%);
+}
+.cal-inspector::after{
+  content:'';position:absolute;top:0;left:15%;right:15%;height:1.5px;
+  background:linear-gradient(90deg,transparent,rgba(0,229,176,.8),transparent);
+  box-shadow:0 0 10px rgba(0,229,176,.6);z-index:2;
+}
+.cal-insp-content{position:relative;z-index:3;display:flex;flex-direction:column;gap:14px;}
+.cal-insp-header{display:flex;align-items:center;justify-content:space-between;}
+.cal-insp-date{
+  font-size:.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  padding:5px 10px;border-radius:50px;
+  background:rgba(8,16,28,.6);border:1px solid rgba(255,255,255,.12);color:var(--accent2);
+}
+.cal-insp-status{font-size:.7rem;font-weight:700;color:#e0f4ff;display:flex;align-items:center;gap:5px;}
+.cal-hero{display:flex;align-items:baseline;gap:6px;}
+.cal-hero-val{font-size:3.2rem;font-weight:800;letter-spacing:-2px;color:#fff;line-height:1;text-shadow:0 3px 14px rgba(0,0,0,.5);}
+.cal-hero-unit{font-size:1.1rem;font-weight:700;color:var(--accent);}
+.cal-insp-desc{font-size:.82rem;color:rgba(220,240,255,.82);line-height:1.4;}
+.cal-gauge-box{
+  background:rgba(8,16,28,.5);border:1px solid rgba(255,255,255,.1);
+  border-radius:12px;padding:10px 12px;
+}
+.cal-gauge-header{display:flex;justify-content:space-between;font-size:.68rem;font-weight:600;color:rgba(200,220,240,.75);margin-bottom:6px;}
+.cal-gauge-track{width:100%;height:10px;border-radius:50px;background:rgba(255,255,255,.07);overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.5);}
+.cal-gauge-fill{
+  height:100%;width:0%;border-radius:50px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2),#8080ff);
+  box-shadow:0 0 10px rgba(0,229,176,.7);
+  transition:width .6s cubic-bezier(.22,1,.36,1);
+}
+.cal-tele-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.cal-tele-item{
+  background:rgba(8,16,28,.45);border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;padding:9px 11px;
+}
+.cal-tele-label{font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:rgba(0,200,230,.7);}
+.cal-tele-val{font-size:.95rem;font-weight:800;color:#fff;margin-top:2px;}
+.cal-month-strip{
+  display:flex;align-items:center;justify-content:space-between;
+  padding-top:10px;border-top:1px solid rgba(255,255,255,.1);
+  font-size:.74rem;color:rgba(220,240,255,.82);
+}
+.cal-month-strip strong{color:var(--accent2);font-weight:800;}
+
+/* ── CHARTS ── */
+.charts{padding:4px 16px;}
+.chart-section{margin-bottom:14px;}
+.chart-card{
+  background:linear-gradient(145deg,var(--card),rgba(8,16,26,0.9));
+  border:1px solid var(--border);border-radius:var(--radius);
+  padding:14px 12px 8px;margin-bottom:10px;
+  position:relative;overflow:hidden;
+}
+.chart-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,229,176,0.3),transparent);
+}
+.chart-title{font-size:12px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.chart-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+canvas.real-chart{display:block;width:100%!important;max-height:160px;}
+
+/* Rain bars — Classic gauge */
+.rain-bars{display:flex;gap:3px;align-items:flex-end;height:100px;padding-bottom:18px;position:relative;}
+.rain-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;height:100%;justify-content:flex-end;}
+.rain-bar{
+  width:100%;
+  background:linear-gradient(180deg,rgba(0,229,176,0.8),rgba(0,160,120,0.9));
+  border-radius:3px 3px 0 0;min-height:2px;
+  box-shadow:0 0 8px rgba(0,229,176,0.3);
+}
+.rain-val{font-size:7px;color:var(--accent);font-weight:600;white-space:nowrap;}
+.rain-label{font-size:8px;color:var(--muted);white-space:nowrap;}
+.rain-axis{position:absolute;bottom:0;left:0;right:0;border-top:1px solid var(--border);}
+
+/* System cards */
+.bat-indicator{display:flex;align-items:center;gap:12px;padding:4px 0;}
+.bat-bar-bg{flex:1;height:18px;background:var(--surface);border-radius:6px;overflow:hidden;border:1px solid var(--border);}
+.bat-bar-fill{height:100%;border-radius:5px;transition:width .6s ease;}
+.bat-val{font-size:18px;font-weight:700;min-width:50px;text-align:right;}
+.gauge-row{display:flex;gap:10px;}
+.gauge-item{flex:1;text-align:center;padding:12px 8px;background:var(--surface);border-radius:10px;border:1px solid var(--border);}
+.gauge-num{font-size:26px;font-weight:700;letter-spacing:-1px;}
+.gauge-sub{font-size:9px;color:var(--muted);margin-top:2px;}
+.gauge-badge{display:inline-block;margin-top:5px;font-size:9px;font-weight:600;padding:2px 8px;border-radius:20px;}
+.solo-row{display:flex;gap:10px;margin-top:4px;}
+.solo-card{flex:1;background:var(--surface);border-radius:10px;padding:12px;text-align:center;border:1px solid var(--border);}
+.solo-val{font-size:22px;font-weight:700;}
+.solo-lbl{font-size:9px;color:var(--muted);margin-top:2px;}
+
+/* Forecast grid */
+.forecast-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:8px 16px 4px;}
+.forecast-card{
+  background:linear-gradient(145deg,rgba(14,28,44,0.9),rgba(10,18,32,0.95));
+  border:1px solid var(--border);border-radius:var(--radius);padding:14px;min-height:155px;
+}
+.forecast-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.forecast-kicker{font-size:9px;color:var(--muted);letter-spacing:.7px;font-weight:700;margin-bottom:4px;}
+.forecast-title{font-size:16px;font-weight:700;}
+.forecast-icon{font-size:30px;line-height:1;}
+.forecast-main{display:flex;align-items:center;gap:14px;margin:10px 0;}
+.forecast-main strong{font-size:32px;letter-spacing:-1.5px;}
+.forecast-main div{display:flex;flex-direction:column;gap:2px;font-size:10px;color:var(--muted);}
+.forecast-days{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;border-top:1px solid var(--border);padding-top:8px;}
+.day-mini{text-align:center;display:flex;flex-direction:column;gap:2px;min-width:0;}
+.day-mini span{font-size:9px;color:var(--muted);text-transform:capitalize;}
+.day-mini b{font-size:16px;}
+.day-mini small{font-size:8px;white-space:nowrap;}
+.day-mini em{font-size:8px;color:var(--accent2);font-style:normal;}
+.forecast-desc{font-size:11px;line-height:1.45;color:var(--muted);margin-top:8px;}
+.forecast-foot{font-size:9px;color:#4a6a7a;margin-top:8px;border-top:1px solid var(--border);padding-top:6px;}
+.forecast-action{margin-top:10px;background:var(--surface);border:1px solid var(--accent);color:var(--accent);padding:7px 10px;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;}
+.forecast-loading{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:11px;height:100%;min-height:120px;justify-content:center;}
+.mini-spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+.baro-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+.baro-stats>div{background:var(--surface);border-radius:9px;padding:9px;border:1px solid var(--border);}
+.baro-stats span{display:block;font-size:9px;color:var(--muted);margin-bottom:3px;}
+.baro-stats b{font-size:13px;}
+.baro-stats b.up{color:var(--accent);}
+.baro-stats b.down{color:#ff7e5f;}
+
+/* Nav sections */
+.relatorios-list{padding:12px 16px;}
+.rel-item{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;cursor:pointer;text-decoration:none;color:var(--text);transition:border-color .2s;}
+.rel-item:active{border-color:var(--accent);}
+.rel-icon{font-size:26px;flex-shrink:0;}
+.rel-info{flex:1;min-width:0;}
+.rel-nome{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rel-open{font-size:11px;color:var(--accent);margin-top:3px;}
+.rel-arrow{color:var(--muted);font-size:16px;flex-shrink:0;}
+.state-msg{text-align:center;padding:48px 20px;color:var(--muted);font-size:14px;}
+.state-msg .icon{font-size:36px;margin-bottom:12px;}
+.state-msg p{line-height:1.5;}
+.spinner{width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px;}
 @keyframes spin{to{transform:rotate(360deg)}}
-.footer{padding:20px 16px calc(var(--safe-bot) + 20px);text-align:center;font-size:11px;color:var(--muted)}
-.sec{display:none}.sec.on{display:block}
-.period-ctrl{display:none}.period-ctrl.on{display:flex}
 
-/* Previsões */
-.forecast-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:8px 16px 4px}
-.forecast-card{background:linear-gradient(145deg,#182c3d,#142433);border:1px solid var(--border);border-radius:var(--radius);padding:14px;min-height:155px}
-.forecast-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-.forecast-kicker{font-size:9px;color:var(--muted);letter-spacing:.7px;font-weight:700;margin-bottom:4px}
-.forecast-title{font-size:17px;font-weight:700}.forecast-icon{font-size:32px;line-height:1}
-.forecast-main{display:flex;align-items:center;gap:14px;margin:12px 0}.forecast-main strong{font-size:34px;letter-spacing:-1.5px}.forecast-main div{display:flex;flex-direction:column;gap:2px;font-size:10px;color:var(--muted)}
-.forecast-days{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;border-top:1px solid var(--border);padding-top:9px}
-.day-mini{text-align:center;display:flex;flex-direction:column;gap:2px;min-width:0}.day-mini span{font-size:9px;color:var(--muted);text-transform:capitalize}.day-mini b{font-size:18px}.day-mini small{font-size:8px;white-space:nowrap}.day-mini em{font-size:8px;color:var(--accent2);font-style:normal}
-.forecast-desc{font-size:11px;line-height:1.45;color:var(--muted);margin-top:10px}.forecast-foot{font-size:9px;color:#567887;margin-top:10px;border-top:1px solid var(--border);padding-top:7px}
-.forecast-action{margin-top:12px;background:var(--surface);border:1px solid var(--accent);color:var(--accent);padding:8px 10px;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer}
-.forecast-loading{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:11px;height:100%;min-height:120px;justify-content:center}.mini-spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
-.baro-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.baro-stats>div{background:var(--surface);border-radius:9px;padding:9px}.baro-stats span{display:block;font-size:9px;color:var(--muted);margin-bottom:3px}.baro-stats b{font-size:14px}.baro-stats b.up{color:var(--accent)}.baro-stats b.down{color:#ff7e5f}
-/* Relatórios por estação */
-.cache-note{font-size:10px;color:var(--accent);padding:2px 2px 10px}.rel-group{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden}.rel-group summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:14px}.rel-group summary::-webkit-details-marker{display:none}.rel-group summary span:first-child{display:flex;flex-direction:column;gap:2px}.rel-group summary b{font-size:13px}.rel-group summary small{font-size:9px;color:var(--muted)}.rel-count{background:var(--surface);color:var(--accent);font-size:10px;font-weight:700;padding:4px 8px;border-radius:20px}.rel-group-body{padding:0 10px 10px}.rel-group-body .rel-item{background:var(--surface);margin-bottom:7px}.rel-empty{padding:14px 6px;color:var(--muted);font-size:11px}
-/* Configurações */
-.config-wrap{padding:12px 16px}.config-intro{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}.config-intro b{font-size:14px}.config-intro p{font-size:11px;color:var(--muted);line-height:1.5;margin-top:6px}.config-list{display:flex;flex-direction:column;gap:8px}.config-station{width:100%;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:12px;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;text-align:left;cursor:pointer}.config-station span:first-child{display:flex;flex-direction:column;gap:2px}.config-station b{font-size:13px}.config-station small{color:var(--muted);font-size:9px}.config-station>span:last-child{font-size:20px;color:var(--muted)}
-.config-panel{background:var(--card);border:1px solid var(--accent);border-radius:var(--radius);padding:14px;margin-top:12px;scroll-margin-top:190px}.config-panel-title{display:flex;justify-content:space-between;align-items:flex-start}.config-panel-title>div{display:flex;flex-direction:column}.config-panel-title b{font-size:14px}.config-panel-title small{color:var(--muted);font-size:9px}.config-panel-title button{background:none;border:0;color:var(--muted);font-size:24px;cursor:pointer}.config-help{font-size:10px;color:var(--muted);margin:8px 0 10px;line-height:1.4}#station-map{height:310px;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:#10202b}.coord-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.coord-grid label{font-size:9px;color:var(--muted);display:flex;flex-direction:column;gap:4px}.coord-grid input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:9px;font-size:12px}.coord-grid input:focus{outline:none;border-color:var(--accent)}.config-actions{display:flex;gap:8px;margin-top:10px}.btn-secondary,.btn-save{flex:1;border-radius:9px;padding:10px 8px;font-size:11px;font-weight:700;cursor:pointer}.btn-secondary{background:var(--surface);border:1px solid var(--border);color:var(--text)}.btn-save{background:var(--accent);border:0;color:#0f2027}.cfg-status{font-size:10px;color:var(--accent);margin-top:8px;min-height:14px}
-/* Notificações */
-.notify-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
-.notify-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.notify-head b{font-size:14px}.notify-head span{font-size:24px}.notify-card p{font-size:10px;color:var(--muted);line-height:1.45;margin-top:6px}
-.notify-controls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end;margin-top:11px}.notify-controls label{font-size:9px;color:var(--muted);display:flex;flex-direction:column;gap:4px}.notify-controls select{min-width:0}.btn-notify{border:0;border-radius:9px;background:var(--accent);color:#0f2027;font-size:11px;font-weight:800;padding:10px 12px;min-height:40px;cursor:pointer;white-space:nowrap}.btn-notify.off{background:var(--surface);border:1px solid var(--border);color:var(--text)}.notify-status{font-size:9px;color:var(--muted);margin-top:8px;min-height:13px}.notify-status.ok{color:var(--accent)}.notify-status.warn{color:#f0a500}.notify-status.err{color:#e05c5c}
+.cache-note{font-size:10px;color:var(--accent);padding:2px 2px 10px;}
+.rel-group{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;}
+.rel-group summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:14px;}
+.rel-group summary::-webkit-details-marker{display:none;}
+.rel-group summary span:first-child{display:flex;flex-direction:column;gap:2px;}
+.rel-group summary b{font-size:13px;}
+.rel-group summary small{font-size:9px;color:var(--muted);}
+.rel-count{background:var(--surface);color:var(--accent);font-size:10px;font-weight:700;padding:4px 8px;border-radius:20px;}
+.rel-group-body{padding:0 10px 10px;}
+.rel-group-body .rel-item{background:var(--surface);margin-bottom:7px;}
+.rel-empty{padding:14px 6px;color:var(--muted);font-size:11px;}
 
+/* Config */
+.config-wrap{padding:12px 16px;}
+.config-intro{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
+.config-intro b{font-size:14px;}
+.config-intro p{font-size:11px;color:var(--muted);line-height:1.5;margin-top:6px;}
+.config-list{display:flex;flex-direction:column;gap:8px;}
+.config-station{width:100%;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:12px;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;text-align:left;cursor:pointer;}
+.config-station span:first-child{display:flex;flex-direction:column;gap:2px;}
+.config-station b{font-size:13px;}
+.config-station small{color:var(--muted);font-size:9px;}
+.config-station>span:last-child{font-size:20px;color:var(--muted);}
+.config-panel{background:var(--card);border:1px solid var(--accent);border-radius:var(--radius);padding:14px;margin-top:12px;scroll-margin-top:200px;}
+.config-panel-title{display:flex;justify-content:space-between;align-items:flex-start;}
+.config-panel-title>div{display:flex;flex-direction:column;}
+.config-panel-title b{font-size:14px;}
+.config-panel-title small{color:var(--muted);font-size:9px;}
+.config-panel-title button{background:none;border:0;color:var(--muted);font-size:24px;cursor:pointer;}
+.config-help{font-size:10px;color:var(--muted);margin:8px 0 10px;line-height:1.4;}
+#station-map{height:300px;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:#08141e;}
+.coord-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+.coord-grid label{font-size:9px;color:var(--muted);display:flex;flex-direction:column;gap:4px;}
+.coord-grid input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:9px;font-size:12px;}
+.coord-grid input:focus{outline:none;border-color:var(--accent);}
+.config-actions{display:flex;gap:8px;margin-top:10px;}
+.btn-secondary,.btn-save{flex:1;border-radius:9px;padding:10px 8px;font-size:11px;font-weight:700;cursor:pointer;}
+.btn-secondary{background:var(--surface);border:1px solid var(--border);color:var(--text);}
+.btn-save{background:var(--accent);border:0;color:#060f1a;}
+.cfg-status{font-size:10px;color:var(--accent);margin-top:8px;min-height:14px;}
+
+/* Notify */
+.notify-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
+.notify-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.notify-head b{font-size:14px;}
+.notify-head span{font-size:22px;}
+.notify-card p{font-size:10px;color:var(--muted);line-height:1.45;margin-top:6px;}
+.notify-controls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end;margin-top:11px;}
+.notify-controls label{font-size:9px;color:var(--muted);display:flex;flex-direction:column;gap:4px;}
+.btn-notify{border:0;border-radius:9px;background:var(--accent);color:#060f1a;font-size:11px;font-weight:800;padding:10px 12px;min-height:40px;cursor:pointer;white-space:nowrap;}
+.btn-notify.off{background:var(--surface);border:1px solid var(--border);color:var(--text);}
+.notify-status{font-size:9px;color:var(--muted);margin-top:8px;min-height:13px;}
+.notify-status.ok{color:var(--accent);}
+.notify-status.warn{color:#f0a500;}
+.notify-status.err{color:#e05c5c;}
+
+.footer{padding:20px 16px calc(var(--safe-bot) + 20px);text-align:center;font-size:11px;color:var(--muted);}
+.sec{display:none;}.sec.on{display:block;}
+
+/* ── RESPONSIVE ── */
 @media(max-width:650px){
-  .forecast-grid{grid-template-columns:1fr}.forecast-days{gap:2px}.main-nav-tab{font-size:11px;padding-left:4px;padding-right:4px}
-  .controls{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 42px;gap:8px;align-items:end;padding:10px 12px 6px;flex-wrap:nowrap}
-  .control-group{min-width:0;width:100%;gap:4px}.control-group label{font-size:9px}.controls select{min-width:0;width:100%;height:40px;font-size:13px;padding:8px 27px 8px 9px;background-position:right 8px center}
-  .btn-refresh{width:42px;height:40px;padding:0;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1}
-  .ultima-leitura{margin-left:12px;margin-right:12px}
-  .notify-controls{grid-template-columns:1fr}.btn-notify{width:100%}
+  .forecast-grid{grid-template-columns:1fr;}
+  .forecast-days{gap:2px;}
+  .main-nav-tab{font-size:11px;padding-left:4px;padding-right:4px;}
+  .controls{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 42px;gap:8px;align-items:end;padding:10px 12px 6px;flex-wrap:nowrap;}
+  .control-group{min-width:0;width:100%;}
+  .control-group label{font-size:9px;}
+  .controls select{min-width:0;width:100%;height:40px;font-size:13px;padding:8px 27px 8px 9px;background-position:right 8px center;}
+  .btn-refresh{width:42px;height:40px;padding:0;display:flex;align-items:center;justify-content:center;font-size:18px;}
+  .notify-controls{grid-template-columns:1fr;}
+  .btn-notify{width:100%;}
+  .gauge-type-wrap{flex-wrap:wrap;}
+  .cal-topbar{flex-direction:column;align-items:flex-start;}
 }
-@media(max-width:360px){
-  .controls{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 38px;gap:6px;padding-left:10px;padding-right:10px}
-  .btn-refresh{width:38px}.controls select{font-size:12px;padding-left:7px;padding-right:23px;background-position:right 6px center}
+@media(max-width:460px){
+  .cal-days-grid{grid-auto-rows:clamp(40px,11vw,56px);gap:3px;}
+  .cal-inner{padding:14px 12px 10px;}
+  .cal-inspector{padding:14px;}
+  .cal-hero-val{font-size:2.5rem;}
 }
-
 </style>
 </head>
 <body>
 
+<!-- Global atmospheric canvases (behind everything) -->
+<canvas id="global-sky-canvas"></canvas>
+<canvas id="global-rain-canvas"></canvas>
+
+<div class="app-content">
+
 <div class="header">
-  <div class="header-logo-wrap">
-    <img src="https://raw.githubusercontent.com/oortbrasil/assets/main/topo.png" alt="OORTagro">
-  </div>
-  <div class="header-sub">Estações-Sonda AgroMeteorológicas</div>
-  <div class="header-bottom">
-    <div class="period-tabs" id="period-tabs">
-      <div class="period-tab active" onclick="setPeriodo('hoje',this)">Dia</div>
-      <div class="period-tab" onclick="setPeriodo('7d',this)">7 dias</div>
-      <div class="period-tab" onclick="setPeriodo('mes',this)">Mês</div>
-    </div>
-    <div class="header-time" id="clock">--:--</div>
-  </div>
-  <div class="main-nav" style="margin:10px -16px -12px;border-top:1px solid #1a3a2a">
-    <div class="main-nav-tab active" data-aba="dados" onclick="setAba('dados',this)">📊 Dados</div>
+  <div class="header-logo-wrap">
+    <img src="https://raw.githubusercontent.com/oortbrasil/assets/main/topo.png" alt="OORTagro">
+  </div>
+  <div class="header-sub">Estações-Sonda AgroMeteorológicas</div>
+  <div class="header-bottom">
+    <div class="period-tabs" id="period-tabs">
+      <div class="period-tab active" onclick="setPeriodo('hoje',this)">Dia</div>
+      <div class="period-tab" onclick="setPeriodo('7d',this)">7 dias</div>
+      <div class="period-tab" onclick="setPeriodo('mes',this)">Mês</div>
+    </div>
+    <div class="header-time" id="clock">--:--</div>
+  </div>
+  <div class="main-nav">
+    <div class="main-nav-tab active" data-aba="dados" onclick="setAba('dados',this)">📊 Dados</div>
     <div class="main-nav-tab" data-aba="relatorios" onclick="setAba('relatorios',this)">📄 Relatórios</div>
     <div class="main-nav-tab" data-aba="config" onclick="setAba('config',this)">⚙️ Config.</div>
-  </div>
+  </div>
 </div>
 
+<!-- Controls: Station + Period selector + Last reading -->
 <div class="controls" id="controls-main">
-  <div class="control-group">
-    <label>Estação</label>
-    <select id="sel-estacao" onchange="onEstacaoChange()"><option value="">Carregando…</option></select>
-  </div>
-  <div class="control-group" id="ctrl-planilha">
-    <label>Período</label>
-    <select id="sel-planilha" onchange="carregarDados()"><option value="">—</option></select>
-  </div>
-  <button class="btn-refresh" id="btn-refresh" onclick="carregarDados()">↻</button>
+  <div class="control-group">
+    <label>Estação</label>
+    <select id="sel-estacao" onchange="onEstacaoChange()"><option value="">Carregando…</option></select>
+  </div>
+  <div class="control-group" id="ctrl-planilha">
+    <label>Período</label>
+    <select id="sel-planilha" onchange="carregarDados()"><option value="">—</option></select>
+  </div>
+  <button class="btn-refresh" id="btn-refresh" onclick="carregarDados()">↻</button>
 </div>
-
 <div class="ultima-leitura" id="ultima-leitura" style="display:none">
-  <span class="ul-dot"></span><span id="ul-texto">—</span>
+  <span class="ul-dot"></span><span id="ul-texto">—</span>
 </div>
 
+<!-- DATA SECTION -->
 <div class="sec on" id="sec-dados">
-  <div id="app-body">
-    <div class="state-msg"><div class="spinner"></div><p>Conectando às estações…</p></div>
-  </div>
+  <div id="app-body">
+    <div class="state-msg"><div class="spinner"></div><p>Conectando às estações…</p></div>
+  </div>
 </div>
 
+<!-- REPORTS -->
 <div class="sec" id="sec-relatorios">
-  <div class="relatorios-list" id="rel-body">
-    <div class="state-msg"><div class="spinner"></div><p>Carregando relatórios…</p></div>
-  </div>
+  <div class="relatorios-list" id="rel-body">
+    <div class="state-msg"><div class="spinner"></div><p>Carregando relatórios…</p></div>
+  </div>
 </div>
 
-
+<!-- CONFIG -->
 <div class="sec" id="sec-config">
   <div class="config-wrap" id="config-body">
     <div class="state-msg"><div class="spinner"></div><p>Carregando configurações…</p></div>
@@ -186,10 +598,16 @@ canvas{display:block;width:100%!important;max-height:180px}
 
 <div class="footer">OORT TECNOLOGIAS · Dados atualizados a cada 10 min</div>
 
+</div><!-- .app-content -->
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <script>
+/* ============================================================
+   OORT AGRO — Versão integrada com Calendário Pluviométrico
+   ============================================================ */
+
 const API='https://script.google.com/macros/s/AKfycbztgm_QeJl2nlnT6sK7XG3PfLxI-5XPhC17Ol5hV2bDKTyjdaKN6tbSGi4Cudp3hB7o8w/exec';
 const WEATHER_API='https://api.open-meteo.com/v1/forecast';
 const DB_NAME='oort-agro-cache-v2',DB_VERSION=1,STORE='cache';
@@ -200,10 +618,16 @@ let dbPromise=null,ultimaPlanilhaPorEstacao={};
 const NOTIFY_CFG_KEY='oort-agro-notify-v1',NOTIFY_EVERY_MS=3*60*60*1000,MONITOR_EVERY_MS=10*60*1000;
 let notifyCheckTimer=null,baroMonitorTimer=null,swRegistration=null;
 
+/* ── Sensor data filter ── */
+function filterTemp(v){const n=parseFloat(v);return(!isNaN(n)&&n>=-50&&n<=500)?n:NaN;}
+function filterPress(v){const n=parseFloat(v);return(!isNaN(n)&&n>=800&&n<=1500)?n:NaN;}
+function filterVal(v){const n=parseFloat(v);return isNaN(n)?NaN:n;}
+
+/* ── Clock ── */
 function atualizarClock(){document.getElementById('clock').textContent=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
 setInterval(atualizarClock,1000);atualizarClock();
 
-// ---------------- CACHE LOCAL (IndexedDB) ----------------
+/* ── IndexedDB Cache ── */
 function abrirDB(){
   if(dbPromise)return dbPromise;
   dbPromise=new Promise((resolve,reject)=>{
@@ -214,30 +638,16 @@ function abrirDB(){
   });
   return dbPromise;
 }
-async function cacheGet(key){
-  try{
-    const db=await abrirDB();
-    return await new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readonly');const r=tx.objectStore(STORE).get(key);r.onsuccess=()=>resolve(r.result||null);r.onerror=()=>reject(r.error);});
-  }catch(e){return null;}
-}
-async function cacheSet(key,value){
-  try{
-    const db=await abrirDB();
-    await new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put({key,value,ts:Date.now()});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});
-  }catch(e){console.warn('Cache indisponível',e);}
-}
+async function cacheGet(key){try{const db=await abrirDB();return await new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readonly');const r=tx.objectStore(STORE).get(key);r.onsuccess=()=>resolve(r.result||null);r.onerror=()=>reject(r.error);});}catch(e){return null;}}
+async function cacheSet(key,value){try{const db=await abrirDB();await new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put({key,value,ts:Date.now()});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});}catch(e){console.warn('Cache indisponível',e);}}
 
 async function fetchJSON(url,timeout=15000){
-  const ctrl=new AbortController();
-  const timer=setTimeout(()=>ctrl.abort(),timeout);
-  try{
-    const r=await fetch(url,{cache:'no-store',signal:ctrl.signal});
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    return await r.json();
-  }finally{clearTimeout(timer);}
+  const ctrl=new AbortController();const timer=setTimeout(()=>ctrl.abort(),timeout);
+  try{const r=await fetch(url,{cache:'no-store',signal:ctrl.signal});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json();}
+  finally{clearTimeout(timer);}
 }
 
-// ---------------- NAVEGAÇÃO ----------------
+/* ── Navigation ── */
 function setAba(aba,el){
   abaAtiva=aba;
   document.querySelectorAll('.main-nav-tab').forEach(t=>t.classList.remove('active'));
@@ -264,70 +674,47 @@ function setPeriodo(p,el){
 }
 function filtrar(dados){
   if(!dados.length)return dados;
-  const ult=new Date(dados[dados.length-1].Date);
   if(periodoAtivo==='hoje'){const d=String(dados[dados.length-1].Date).slice(0,10);return dados.filter(x=>String(x.Date).slice(0,10)===d);}
-  if(periodoAtivo==='7d'){const lim=new Date(ult);lim.setDate(lim.getDate()-7);return dados.filter(x=>new Date(x.Date)>=lim);}
+  if(periodoAtivo==='7d'){const ult=new Date(dados[dados.length-1].Date);const lim=new Date(ult);lim.setDate(lim.getDate()-7);return dados.filter(x=>new Date(x.Date)>=lim);}
   return dados;
 }
 
-// ---------------- INICIALIZAÇÃO / ESTAÇÕES ----------------
+/* ── Init / Stations ── */
 async function init(){
   await abrirDB().catch(()=>null);
-  const cached=await cacheGet('estacoes');
-  let abriuComCache=false;
-  if(cached&&Array.isArray(cached.value)&&cached.value.length){
-    abriuComCache=true;
-    aplicarEstacoes(cached.value);
-    await onEstacaoChange(); // mostra cache primeiro e atualiza em seguida
-  }
+  const cached=await cacheGet('estacoes');let abriuComCache=false;
+  if(cached&&Array.isArray(cached.value)&&cached.value.length){abriuComCache=true;aplicarEstacoes(cached.value);await onEstacaoChange();}
   try{
     const d=await fetchJSON(API+'?action=estacoes');
-    if(!d.ok)throw new Error(d.erro||'Falha ao listar estações');
-    const atual=estacaoAtual;
-    aplicarEstacoes(d.estacoes||[],atual);
-    await cacheSet('estacoes',d.estacoes||[]);
+    if(!d.ok)throw new Error(d.erro||'Falha');
+    const atual=estacaoAtual;aplicarEstacoes(d.estacoes||[],atual);await cacheSet('estacoes',d.estacoes||[]);
     if(!abriuComCache&&d.estacoes&&d.estacoes.length)await onEstacaoChange();
     if(abaAtiva==='config')renderConfigLista();
-  }catch(err){
-    if(!abriuComCache)mostrarErro('Não foi possível conectar.<br><small>'+esc(err.message)+'</small>');
-  }
+  }catch(err){if(!abriuComCache)mostrarErro('Não foi possível conectar.<br><small>'+esc(err.message)+'</small>');}
 }
 function aplicarEstacoes(lista,preservar=''){
   estacoesDisponiveis=lista||[];
-  const sel=document.getElementById('sel-estacao');
-  const alvo=preservar||sel.value||estacaoAtual;
+  const sel=document.getElementById('sel-estacao');const alvo=preservar||sel.value||estacaoAtual;
   sel.innerHTML=estacoesDisponiveis.map(e=>'<option value="'+escAttr(e.nome)+'">'+esc(e.codigo||e.nome)+'</option>').join('');
   if(alvo&&estacoesDisponiveis.some(e=>e.nome===alvo))sel.value=alvo;
   estacaoAtual=sel.value||'';
 }
 async function onEstacaoChange(){
-  estacaoAtual=document.getElementById('sel-estacao').value;
-  if(!estacaoAtual)return;
-  setStatusLeitura('Atualizando última leitura…','');
-  atualizarUltimaLeitura(estacaoAtual);
+  estacaoAtual=document.getElementById('sel-estacao').value;if(!estacaoAtual)return;
+  setStatusLeitura('Atualizando última leitura…','');atualizarUltimaLeitura(estacaoAtual);
   await carregarPlanilhas(estacaoAtual);
 }
 async function carregarPlanilhas(est){
-  const sel=document.getElementById('sel-planilha');
-  const cache=await cacheGet('planilhas:'+est);
-  let mostrouCache=false;
-  if(cache&&Array.isArray(cache.value)&&cache.value.length){
-    preencherPlanilhas(cache.value,ultimaPlanilhaPorEstacao[est]);
-    mostrouCache=await carregarDados({somenteCache:true});
-  }else if(!dadosAtivos.length){
-    document.getElementById('app-body').innerHTML='<div class="state-msg"><div class="spinner"></div><p>Carregando dados da estação…</p></div>';
-  }
+  const sel=document.getElementById('sel-planilha');const cache=await cacheGet('planilhas:'+est);let mostrouCache=false;
+  if(cache&&Array.isArray(cache.value)&&cache.value.length){preencherPlanilhas(cache.value,ultimaPlanilhaPorEstacao[est]);mostrouCache=await carregarDados({somenteCache:true});}
+  else if(!dadosAtivos.length){document.getElementById('app-body').innerHTML='<div class="state-msg"><div class="spinner"></div><p>Carregando dados da estação…</p></div>';}
   try{
     const d=await fetchJSON(API+'?action=planilhas&estacao='+encodeURIComponent(est));
-    if(!d.ok)throw new Error(d.erro||'Erro ao listar períodos');
-    const manter=sel.value||ultimaPlanilhaPorEstacao[est];
-    preencherPlanilhas(d.planilhas||[],manter);
-    await cacheSet('planilhas:'+est,d.planilhas||[]);
+    if(!d.ok)throw new Error(d.erro||'Erro');
+    const manter=sel.value||ultimaPlanilhaPorEstacao[est];preencherPlanilhas(d.planilhas||[],manter);await cacheSet('planilhas:'+est,d.planilhas||[]);
     if(d.planilhas&&d.planilhas.length)await carregarDados({pularCache:mostrouCache,silencioso:mostrouCache});
     else mostrarVazio('Nenhuma planilha encontrada.');
-  }catch(err){
-    if(!mostrouCache)mostrarErro('Erro: '+esc(err.message));
-  }
+  }catch(err){if(!mostrouCache)mostrarErro('Erro: '+esc(err.message));}
 }
 function preencherPlanilhas(planilhas,manter=''){
   const sel=document.getElementById('sel-planilha');
@@ -336,44 +723,22 @@ function preencherPlanilhas(planilhas,manter=''){
   if(sel.value)ultimaPlanilhaPorEstacao[estacaoAtual]=sel.value;
 }
 
-// ---------------- DADOS / CACHE ----------------
+/* ── Data loading ── */
 async function carregarDados(opts={}){
-  const est=document.getElementById('sel-estacao').value;
-  const plan=document.getElementById('sel-planilha').value;
+  const est=document.getElementById('sel-estacao').value;const plan=document.getElementById('sel-planilha').value;
   if(!est||!plan)return false;
-  ultimaPlanilhaPorEstacao[est]=plan;
-  const key='dados:'+est+':'+plan;
-  let mostrouCache=false;
-  if(!opts.pularCache){
-    const c=await cacheGet(key);
-    if(c&&Array.isArray(c.value)&&c.value.length){
-      dadosAtivos=c.value;
-      const f=filtrar(dadosAtivos);
-      destroyCharts();
-      if(f.length)renderizar(f); else mostrarVazio('Sem dados neste intervalo no cache.');
-      mostrouCache=true;
-      setStatusLeitura('Atualizando última leitura…','');
-    }
-  }
+  ultimaPlanilhaPorEstacao[est]=plan;const key='dados:'+est+':'+plan;let mostrouCache=false;
+  if(!opts.pularCache){const c=await cacheGet(key);if(c&&Array.isArray(c.value)&&c.value.length){dadosAtivos=c.value;const f=filtrar(dadosAtivos);destroyCharts();if(f.length)renderizar(f);else mostrarVazio('Sem dados neste intervalo no cache.');mostrouCache=true;setStatusLeitura('Atualizando última leitura…','');}}
   if(opts.somenteCache)return mostrouCache;
   if(!mostrouCache&&!opts.silencioso){mostrarLoading();destroyCharts();}
   try{
     const d=await fetchJSON(API+'?action=dados&estacao='+encodeURIComponent(est)+'&planilha='+encodeURIComponent(plan),20000);
     if(est!==document.getElementById('sel-estacao').value||plan!==document.getElementById('sel-planilha').value)return mostrouCache;
-    if(!d.ok)throw new Error(d.erro||'Erro ao carregar dados');
+    if(!d.ok)throw new Error(d.erro||'Erro');
     if(!d.dados||!d.dados.length){if(!mostrouCache)mostrarVazio('Sem dados para este período.');return mostrouCache;}
-    dadosAtivos=d.dados;
-    await cacheSet(key,d.dados);
-    const f=filtrar(dadosAtivos);
-    destroyCharts();
-    if(!f.length)mostrarVazio('Sem dados para este intervalo. Tente "7 dias" ou "Mês".');
-    else renderizar(f);
-    return true;
-  }catch(err){
-    if(!mostrouCache)mostrarErro('Erro: '+esc(err.message));
-    else setStatusLeitura('Dados em cache · não foi possível atualizar agora','stale');
-    return mostrouCache;
-  }
+    dadosAtivos=d.dados;await cacheSet(key,d.dados);const f=filtrar(dadosAtivos);destroyCharts();
+    if(!f.length)mostrarVazio('Sem dados para este intervalo. Tente "7 dias" ou "Mês".');else renderizar(f);return true;
+  }catch(err){if(!mostrouCache)mostrarErro('Erro: '+esc(err.message));else setStatusLeitura('Dados em cache · não foi possível atualizar agora','stale');return mostrouCache;}
 }
 async function atualizarUltimaLeitura(estacao){
   setStatusLeitura('Atualizando última leitura…','');
@@ -381,8 +746,7 @@ async function atualizarUltimaLeitura(estacao){
     const d=await fetchJSON(API+'?action=ultima_leitura&estacao='+encodeURIComponent(estacao),10000);
     if(estacao!==estacaoAtual)return;
     if(!d.ok||!d.data){setStatusLeitura('Sem dados registrados','offline');return;}
-    const dt=new Date(String(d.data).replace(' ','T')+'-03:00');
-    const diff=Math.round((new Date()-dt)/60000);
+    const dt=new Date(String(d.data).replace(' ','T')+'-03:00');const diff=Math.round((new Date()-dt)/60000);
     let status='',label='Última leitura: '+d.data;
     if(diff>60){status='stale';label+=' ('+diff+' min atrás)';}
     if(diff>180){status='offline';label+=' ⚠️';}
@@ -393,65 +757,47 @@ async function atualizarUltimaLeitura(estacao){
   }
 }
 function setStatusLeitura(text,status=''){
-  const el=document.getElementById('ultima-leitura');
-  const tx=document.getElementById('ul-texto');
-  el.className='ultima-leitura '+status;
-  if(abaAtiva==='dados')el.style.display='flex';
-  tx.textContent=text;
+  const el=document.getElementById('ultima-leitura');const tx=document.getElementById('ul-texto');
+  el.className='ultima-leitura '+status;if(abaAtiva==='dados')el.style.display='flex';tx.textContent=text;
 }
 
-// ---------------- RELATÓRIOS SEPARADOS POR ESTAÇÃO ----------------
+/* ── Reports ── */
 async function carregarRelatoriosSeparados(){
   const rb=document.getElementById('rel-body');
   if(!estacoesDisponiveis.length){rb.innerHTML='<div class="state-msg"><div class="spinner"></div><p>Carregando estações…</p></div>';return;}
-  const grupos={};
-  let temCache=false;
-  for(const e of estacoesDisponiveis){
-    const c=await cacheGet('relatorios:'+e.nome);
-    if(c&&Array.isArray(c.value)){grupos[e.nome]=c.value;temCache=true;}
-  }
+  const grupos={};let temCache=false;
+  for(const e of estacoesDisponiveis){const c=await cacheGet('relatorios:'+e.nome);if(c&&Array.isArray(c.value)){grupos[e.nome]=c.value;temCache=true;}}
   if(temCache)renderRelatoriosAgrupados(grupos,true);
   else rb.innerHTML='<div class="state-msg"><div class="spinner"></div><p>Carregando relatórios por estação…</p></div>';
-
   await Promise.allSettled(estacoesDisponiveis.map(async e=>{
     const d=await fetchJSON(API+'?action=relatorios&estacao='+encodeURIComponent(e.nome),15000);
-    if(!d.ok)throw new Error(d.erro||'Erro ao buscar relatórios');
-    grupos[e.nome]=normalizarRelatoriosEstacao(d.relatorios||[],e);
-    await cacheSet('relatorios:'+e.nome,grupos[e.nome]);
+    if(!d.ok)throw new Error(d.erro||'Erro');
+    grupos[e.nome]=normalizarRelatoriosEstacao(d.relatorios||[],e);await cacheSet('relatorios:'+e.nome,grupos[e.nome]);
   }));
   renderRelatoriosAgrupados(grupos,false);
 }
 function normalizarRelatoriosEstacao(rels,est){
   const possuiMetadado=(rels||[]).some(r=>r.estacao||r.codigoEstacao||r.codigo);
-  if(!possuiMetadado)return rels||[]; // endpoint já deve ter filtrado pelo parâmetro estacao
-  return (rels||[]).filter(r=>{
-    const id=String(r.estacao||r.codigoEstacao||r.codigo||'').toLowerCase();
-    return id===String(est.nome).toLowerCase()||id===String(est.codigo||'').toLowerCase();
-  });
+  if(!possuiMetadado)return rels||[];
+  return (rels||[]).filter(r=>{const id=String(r.estacao||r.codigoEstacao||r.codigo||'').toLowerCase();return id===String(est.nome).toLowerCase()||id===String(est.codigo||'').toLowerCase();});
 }
 function renderRelatoriosAgrupados(grupos,atualizando){
   const rb=document.getElementById('rel-body');
   const html=estacoesDisponiveis.map((e,i)=>{
     const arr=grupos[e.nome]||[];
-    const itens=arr.length?arr.map(rel=>
-      '<a class="rel-item" href="'+escAttr(rel.url||'#')+'" target="_blank" rel="noopener">'+
-        '<div class="rel-icon">📄</div><div class="rel-info"><div class="rel-nome">'+esc(rel.nome||'Relatório')+'</div><div class="rel-open">Abrir PDF</div></div><div class="rel-arrow">›</div></a>'
-    ).join(''):'<div class="rel-empty">Nenhum relatório encontrado para esta estação.</div>';
+    const itens=arr.length?arr.map(rel=>'<a class="rel-item" href="'+escAttr(rel.url||'#')+'" target="_blank" rel="noopener"><div class="rel-icon">📄</div><div class="rel-info"><div class="rel-nome">'+esc(rel.nome||'Relatório')+'</div><div class="rel-open">Abrir PDF</div></div><div class="rel-arrow">›</div></a>').join(''):'<div class="rel-empty">Nenhum relatório encontrado para esta estação.</div>';
     return '<details class="rel-group" '+(i===0?'open':'')+'><summary><span><b>'+esc(e.codigo||e.nome)+'</b><small>'+esc(e.nome)+'</small></span><span class="rel-count">'+arr.length+'</span></summary><div class="rel-group-body">'+itens+'</div></details>';
   }).join('');
   rb.innerHTML=(atualizando?'<div class="cache-note">Exibindo cache · atualizando relatórios…</div>':'')+html;
 }
 
-// ---------------- PREVISÃO EXTERNA ----------------
+/* ── External weather forecast ── */
 async function getLocalizacaoEstacao(nome){
-  const c=await cacheGet('localizacao:'+nome);
-  if(c&&c.value&&isFinite(c.value.lat)&&isFinite(c.value.lon))return c.value;
-  const e=estacoesDisponiveis.find(x=>x.nome===nome);
-  const lat=parseFloat(e&&(e.lat??e.latitude));
-  const lon=parseFloat(e&&(e.lon??e.lng??e.longitude));
+  const c=await cacheGet('localizacao:'+nome);if(c&&c.value&&isFinite(c.value.lat)&&isFinite(c.value.lon))return c.value;
+  const e=estacoesDisponiveis.find(x=>x.nome===nome);const lat=parseFloat(e&&(e.lat??e.latitude));const lon=parseFloat(e&&(e.lon??e.lng??e.longitude));
   return isFinite(lat)&&isFinite(lon)?{lat,lon}:null;
 }
-function weatherCacheKey(est,loc){return 'weather:'+est+':'+loc.lat.toFixed(3)+':'+loc.lon.toFixed(3);}
+function weatherCacheKey(est,loc){return'weather:'+est+':'+loc.lat.toFixed(3)+':'+loc.lon.toFixed(3);}
 function weatherURL(loc){
   return WEATHER_API+'?latitude='+encodeURIComponent(loc.lat)+'&longitude='+encodeURIComponent(loc.lon)+
     '&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,pressure_msl'+
@@ -460,71 +806,63 @@ function weatherURL(loc){
     '&timezone=auto&forecast_days=5';
 }
 async function obterPrevisaoEstacao(est,{forcar=false}={}){
-  const loc=await getLocalizacaoEstacao(est);
-  if(!loc)return {loc:null,data:null,cache:false};
-  const key=weatherCacheKey(est,loc);
-  const cached=await cacheGet(key);
-  if(cached&&cached.value&&!forcar&&Date.now()-cached.ts<20*60*1000)return {loc,data:cached.value,cache:true};
-  try{
-    const d=await fetchJSON(weatherURL(loc),12000);
-    await cacheSet(key,d);
-    return {loc,data:d,cache:false};
-  }catch(e){
-    if(cached&&cached.value)return {loc,data:cached.value,cache:true};
-    throw e;
-  }
+  const loc=await getLocalizacaoEstacao(est);if(!loc)return{loc:null,data:null,cache:false};
+  const key=weatherCacheKey(est,loc);const cached=await cacheGet(key);
+  if(cached&&cached.value&&!forcar&&Date.now()-cached.ts<20*60*1000)return{loc,data:cached.value,cache:true};
+  try{const d=await fetchJSON(weatherURL(loc),12000);await cacheSet(key,d);return{loc,data:d,cache:false};}
+  catch(e){if(cached&&cached.value)return{loc,data:cached.value,cache:true};throw e;}
 }
 function chanceChuva12h(d){
   const h=d&&d.hourly;
   if(!h||!Array.isArray(h.time)||!Array.isArray(h.precipitation_probability)){
-    const fallback=d&&d.daily&&d.daily.precipitation_probability_max&&d.daily.precipitation_probability_max[0];
-    return isFinite(parseFloat(fallback))?Math.round(parseFloat(fallback)):null;
+    const fb=d&&d.daily&&d.daily.precipitation_probability_max&&d.daily.precipitation_probability_max[0];
+    return isFinite(parseFloat(fb))?Math.round(parseFloat(fb)):null;
   }
-  const agora=(d.current&&d.current.time)||'';
-  let idx=h.time.findIndex(t=>t>=agora);
-  if(idx<0)idx=0;
+  const agora=(d.current&&d.current.time)||'';let idx=h.time.findIndex(t=>t>=agora);if(idx<0)idx=0;
   const vals=h.precipitation_probability.slice(idx,idx+12).map(Number).filter(Number.isFinite);
   return vals.length?Math.round(Math.max(...vals)):null;
 }
+
+/* Get current weather code for background */
+let currentWeatherCode=null;
 async function atualizarPrevisaoExterna(){
-  const card=document.getElementById('forecast-api');
-  if(!card)return;
-  const est=estacaoAtual;
-  const loc=await getLocalizacaoEstacao(est);
-  if(!card||est!==estacaoAtual)return;
-  if(!loc){
-    card.innerHTML='<div class="forecast-head"><div><div class="forecast-kicker">API EXTERNA</div><div class="forecast-title">Localização não definida</div></div><div class="forecast-icon">📍</div></div><p class="forecast-desc">Defina o ponto exato da estação para ativar a previsão meteorológica.</p><button class="forecast-action" onclick="irParaConfig(\''+jsStr(est)+'\')">Definir localização</button>';
-    return;
-  }
-  const key=weatherCacheKey(est,loc),cached=await cacheGet(key);
-  if(cached&&cached.value)renderPrevisaoAPI(cached.value,true);
+  const card=document.getElementById('forecast-api');if(!card)return;
+  const est=estacaoAtual;const loc=await getLocalizacaoEstacao(est);if(!card||est!==estacaoAtual)return;
+  if(!loc){card.innerHTML='<div class="forecast-head"><div><div class="forecast-kicker">API EXTERNA</div><div class="forecast-title">Localização não definida</div></div><div class="forecast-icon">📍</div></div><p class="forecast-desc">Defina o ponto exato da estação para ativar a previsão meteorológica.</p><button class="forecast-action" onclick="irParaConfig(\''+jsStr(est)+'\')">Definir localização</button>';return;}
+  const key=weatherCacheKey(est,loc);const cached=await cacheGet(key);
+  if(cached&&cached.value){renderPrevisaoAPI(cached.value,true);applyWeatherBackground(cached.value);}
   if(cached&&Date.now()-cached.ts<20*60*1000)return;
-  try{
-    const r=await obterPrevisaoEstacao(est,{forcar:true});
-    if(est!==estacaoAtual)return;
-    renderPrevisaoAPI(r.data,false);
-  }catch(e){
-    if(!cached)card.innerHTML='<div class="forecast-head"><div><div class="forecast-kicker">API EXTERNA</div><div class="forecast-title">Previsão indisponível</div></div><div class="forecast-icon">⚠️</div></div><p class="forecast-desc">Não foi possível consultar a previsão agora.</p>';
-  }
+  try{const r=await obterPrevisaoEstacao(est,{forcar:true});if(est!==estacaoAtual)return;renderPrevisaoAPI(r.data,false);applyWeatherBackground(r.data);}
+  catch(e){if(!cached)card.innerHTML='<div class="forecast-head"><div><div class="forecast-kicker">API EXTERNA</div><div class="forecast-title">Previsão indisponível</div></div><div class="forecast-icon">⚠️</div></div><p class="forecast-desc">Não foi possível consultar a previsão agora.</p>';}
 }
+
+function applyWeatherBackground(d){
+  if(!d||!d.current)return;
+  const code=Number(d.current.weather_code);
+  currentWeatherCode=code;
+  const body=document.body;
+  body.classList.remove('weather-sunny','weather-rainy','weather-storm');
+  if(code===0||code===1){body.classList.add('weather-sunny');setGlobalAtmosphere('sunny');}
+  else if([61,63,65,66,67,80,81,82].includes(code)){body.classList.add('weather-rainy');setGlobalAtmosphere('rain',0.5);}
+  else if([95,96,99].includes(code)){body.classList.add('weather-storm');setGlobalAtmosphere('rain',1.0);}
+  else{setGlobalAtmosphere('neutral');}
+}
+
 function renderPrevisaoAPI(d,cache){
   const card=document.getElementById('forecast-api');if(!card||!d.current)return;
   const info=weatherInfo(d.current.weather_code),chuva12=chanceChuva12h(d);
   const days=(d.daily&&d.daily.time?d.daily.time:[]).slice(0,5).map((dia,i)=>{
-    const wi=weatherInfo(d.daily.weather_code[i]);
-    const nome=i===0?'Hoje':new Date(dia+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short'}).replace('.','');
+    const wi=weatherInfo(d.daily.weather_code[i]);const nome=i===0?'Hoje':new Date(dia+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short'}).replace('.','');
     return '<div class="day-mini"><span>'+esc(nome)+'</span><b>'+wi.icon+'</b><small>'+fmt0(d.daily.temperature_2m_min[i])+'° / '+fmt0(d.daily.temperature_2m_max[i])+'°</small><em>💧 '+fmt0(d.daily.precipitation_probability_max[i])+'%</em></div>';
   }).join('');
-  card.innerHTML='<div class="forecast-head"><div><div class="forecast-kicker">PREVISÃO GERAL · OPEN-METEO'+(cache?' · CACHE':'')+'</div><div class="forecast-title">'+esc(info.text)+'</div></div><div class="forecast-icon">'+info.icon+'</div></div>'+ 
-    '<div class="forecast-main"><strong>'+fmt(d.current.temperature_2m)+'°C</strong><div><span>Sensação '+fmt(d.current.apparent_temperature)+'°C</span><span>Umidade '+fmt0(d.current.relative_humidity_2m)+'%</span><span>Chuva 12h '+(chuva12===null?'—':chuva12+'%')+'</span><span>Vento '+fmt(d.current.wind_speed_10m)+' km/h</span></div></div>'+ 
+  card.innerHTML='<div class="forecast-head"><div><div class="forecast-kicker">PREVISÃO GERAL · OPEN-METEO'+(cache?' · CACHE':'')+'</div><div class="forecast-title">'+esc(info.text)+'</div></div><div class="forecast-icon">'+info.icon+'</div></div>'+
+    '<div class="forecast-main"><strong>'+fmt(d.current.temperature_2m)+'°C</strong><div><span>Sensação '+fmt(d.current.apparent_temperature)+'°C</span><span>Umidade '+fmt0(d.current.relative_humidity_2m)+'%</span><span>Chuva 12h '+(chuva12===null?'—':chuva12+'%')+'</span><span>Vento '+fmt(d.current.wind_speed_10m)+' km/h</span></div></div>'+
     '<div class="forecast-days">'+days+'</div>';
 }
 function weatherInfo(code){
   code=Number(code);
-  if(code===0)return{icon:'☀️',text:'Céu limpo'};
-  if([1,2].includes(code))return{icon:'🌤️',text:'Parcialmente nublado'};
-  if(code===3)return{icon:'☁️',text:'Nublado'};
-  if([45,48].includes(code))return{icon:'🌫️',text:'Neblina'};
+  if(code===0)return{icon:'☀️',text:'Céu limpo'};if([1,2].includes(code))return{icon:'🌤️',text:'Parcialmente nublado'};
+  if(code===3)return{icon:'☁️',text:'Nublado'};if([45,48].includes(code))return{icon:'🌫️',text:'Neblina'};
   if([51,53,55,56,57].includes(code))return{icon:'🌦️',text:'Garoa'};
   if([61,63,65,66,67,80,81,82].includes(code))return{icon:'🌧️',text:'Chuva'};
   if([71,73,75,77,85,86].includes(code))return{icon:'🌨️',text:'Neve'};
@@ -532,56 +870,47 @@ function weatherInfo(code){
   return{icon:'🌥️',text:'Condições variáveis'};
 }
 
-// ---------------- PREVISÃO BAROMÉTRICA LOCAL ----------------
+/* ── Barometric forecast ── */
 function calcularEstadoBarometrico(dados){
-  const validos=(dados||[]).map(d=>({t:new Date(d.Date),p:parseFloat(d.Press),h:parseFloat(d.UmiAr)})).filter(x=>!isNaN(x.t)&&isFinite(x.p));
+  const validos=(dados||[]).map(d=>({t:new Date(d.Date),p:filterPress(d.Press),h:filterVal(d.UmiAr)})).filter(x=>!isNaN(x.t)&&isFinite(x.p));
   if(validos.length<2)return null;
   const last=validos[validos.length-1],alvo=last.t.getTime()-3*3600000;
-  let prev=validos[0];
-  for(const x of validos){if(x.t.getTime()<=alvo)prev=x;else break;}
+  let prev=validos[0];for(const x of validos){if(x.t.getTime()<=alvo)prev=x;else break;}
   const horas=Math.max((last.t-prev.t)/3600000,0.25),delta3=(last.p-prev.p)*(3/horas),umid=isFinite(last.h)?last.h:null;
-  let icon='➡️',titulo='Tempo estável',desc='Sem indicação barométrica de chuva ou mudanças significativas no tempo nas próximas 6 horas.',alertaBrusco=false;
+  let icon='➡️',titulo='Tempo estável',desc='Sem indicação barométrica de chuva ou mudanças significativas nas próximas 6 horas.',alertaBrusco=false;
   if(delta3<=-3){icon='🌧️';titulo='Instabilidade aumentando';desc='Há sinal barométrico de instabilidade nas próximas 3 horas, com possibilidade de chuva ou mudança rápida do tempo.';alertaBrusco=true;}
   else if(delta3<=-1.5){icon='🌦️';titulo='Tempo em deterioração';desc='A tendência indica possível mudança do tempo nas próximas 3 a 6 horas; acompanhe chuva, vento e umidade.';alertaBrusco=true;}
   else if(delta3<=-.5){icon='↘️';titulo='Possível mudança';desc='Pressão em queda lenta. Pode haver alteração do tempo nas próximas 6 horas.';}
-  else if(delta3<.5){
-    icon=umid!==null&&umid>=80?'🌫️':'⛅';
-    titulo=umid!==null&&umid>=80?'Estável e úmido':'Tempo estável';
-    desc=umid!==null&&umid>=80?'Sem indicação barométrica de chuva nas próximas 6 horas, mas a umidade elevada favorece neblina ou condensação.':'Sem indicação barométrica de chuva ou mudanças significativas no tempo nas próximas 6 horas.';
-  } else if(delta3<1.5){icon='↗️';titulo='Tempo estável';desc='Pressão em elevação. Sem indicação barométrica de chuva ou alterações significativas no tempo nas próximas 8 horas.';}
-  else{icon='☀️';titulo='Tempo firme';desc='Pressão em elevação consistente. Sem indicação barométrica de chuva ou alterações significativas no tempo nas próximas 12 horas.';}
-  return {last,delta3,umid,icon,titulo,desc,alertaBrusco};
+  else if(delta3<.5){icon=umid!==null&&umid>=80?'🌫️':'⛅';titulo=umid!==null&&umid>=80?'Estável e úmido':'Tempo estável';desc=umid!==null&&umid>=80?'Sem indicação barométrica de chuva, mas a umidade elevada favorece neblina.':'Sem indicação barométrica de chuva ou mudanças significativas nas próximas 6 horas.';}
+  else if(delta3<1.5){icon='↗️';titulo='Tempo estável';desc='Pressão em elevação. Sem indicação barométrica de chuva nas próximas 8 horas.';}
+  else{icon='☀️';titulo='Tempo firme';desc='Pressão em elevação consistente. Sem indicação barométrica de chuva nas próximas 12 horas.';}
+  return{last,delta3,umid,icon,titulo,desc,alertaBrusco};
 }
 function renderPrevisaoBarometrica(dados){
   const card=document.getElementById('forecast-baro');if(!card)return;
   const e=calcularEstadoBarometrico(dados);
   if(!e){card.innerHTML='<div class="forecast-head"><div><div class="forecast-kicker">ESTAÇÃO · BARÔMETRO</div><div class="forecast-title">Dados insuficientes</div></div><div class="forecast-icon">🧭</div></div><p class="forecast-desc">São necessárias leituras anteriores de pressão para calcular a tendência local.</p>';return;}
-  card.innerHTML='<div class="forecast-head"><div><div class="forecast-kicker">PREVISÃO LOCAL · BARÔMETRO</div><div class="forecast-title">'+e.titulo+'</div></div><div class="forecast-icon">'+e.icon+'</div></div>'+ 
-    '<div class="baro-stats"><div><span>Pressão</span><b>'+fmt1(e.last.p)+' hPa</b></div><div><span>Tendência 3h</span><b class="'+(e.delta3<-.5?'down':e.delta3>.5?'up':'')+'">'+(e.delta3>0?'+':'')+e.delta3.toFixed(1)+' hPa</b></div></div>'+ 
-    '<p class="forecast-desc">'+e.desc+'</p><div class="forecast-foot">Estimativa heurística da própria estação com base na tendência barométrica; confirme com a previsão meteorológica geral.</div>';
+  card.innerHTML='<div class="forecast-head"><div><div class="forecast-kicker">PREVISÃO LOCAL · BARÔMETRO</div><div class="forecast-title">'+e.titulo+'</div></div><div class="forecast-icon">'+e.icon+'</div></div>'+
+    '<div class="baro-stats"><div><span>Pressão</span><b>'+fmt1(e.last.p)+' hPa</b></div><div><span>Tendência 3h</span><b class="'+(e.delta3<-.5?'down':e.delta3>.5?'up':'')+'">'+( e.delta3>0?'+':'')+e.delta3.toFixed(1)+' hPa</b></div></div>'+
+    '<p class="forecast-desc">'+e.desc+'</p><div class="forecast-foot">Estimativa heurística da estação com base na tendência barométrica.</div>';
   avaliarAlertaBarometrico(estacaoAtual,e).catch(()=>{});
 }
 
-// ---------------- CONFIGURAÇÕES / MAPA ----------------
+/* ── Config / Map ── */
 function renderConfigLista(){
   const body=document.getElementById('config-body');
   if(!estacoesDisponiveis.length){body.innerHTML='<div class="state-msg"><div class="spinner"></div><p>Carregando estações…</p></div>';return;}
-  const ncfg=getNotifyConfig();
-  const nsel=ncfg.station||estacaoAtual||estacoesDisponiveis[0].nome;
+  const ncfg=getNotifyConfig();const nsel=ncfg.station||estacaoAtual||estacoesDisponiveis[0].nome;
   const notifyOptions=estacoesDisponiveis.map(e=>'<option value="'+escAttr(e.nome)+'" '+(e.nome===nsel?'selected':'')+'>'+esc(e.codigo||e.nome)+'</option>').join('');
   body.innerHTML='<div class="notify-card"><div class="notify-head"><div><b>Notificações meteorológicas</b><p>Resumo a cada 3 h com temperatura da estação e chance de chuva nas próximas 12 h. Queda brusca de pressão gera um alerta único por evento.</p></div><span>🔔</span></div><div class="notify-controls"><label>Estação monitorada<select id="notify-station" onchange="alterarEstacaoNotificacao(this.value)">'+notifyOptions+'</select></label><button id="notify-btn" class="btn-notify" onclick="alternarNotificacoes()">Ativar notificações</button></div><div id="notify-status" class="notify-status"></div></div><div class="config-intro"><b>Localização das estações</b><p>Selecione uma estação e marque no mapa o ponto exato onde ela está instalada. Essa posição será usada pela previsão meteorológica externa.</p></div><div class="config-list">'+estacoesDisponiveis.map(e=>'<button class="config-station" onclick="abrirConfigEstacao(\''+jsStr(e.nome)+'\')"><span><b>'+esc(e.codigo||e.nome)+'</b><small>'+esc(e.nome)+'</small></span><span>›</span></button>').join('')+'</div><div id="config-editor"></div>';
   setTimeout(atualizarUINotificacoes,0);
 }
 async function abrirConfigEstacao(nome){
-  estacaoConfigAtual=nome;
-  const e=estacoesDisponiveis.find(x=>x.nome===nome)||{nome,codigo:nome};
+  estacaoConfigAtual=nome;const e=estacoesDisponiveis.find(x=>x.nome===nome)||{nome,codigo:nome};
   const editor=document.getElementById('config-editor');if(!editor)return;
-  let loc=await getLocalizacaoEstacao(nome);
-  const temLoc=!!loc;
-  if(!loc)loc={lat:-14.2350,lon:-51.9253}; // centro aproximado do Brasil, apenas para iniciar o mapa
-  editor.innerHTML='<div class="config-panel"><div class="config-panel-title"><div><b>'+esc(e.codigo||e.nome)+'</b><small>'+esc(e.nome)+'</small></div><button onclick="fecharConfigMapa()">×</button></div><p class="config-help">Toque no mapa ou arraste o marcador. Depois salve a localização.</p><div id="station-map"></div><div class="coord-grid"><label>Latitude<input id="cfg-lat" type="number" step="0.000001" value="'+(temLoc?loc.lat.toFixed(6):'')+'" placeholder="-17.000000"></label><label>Longitude<input id="cfg-lon" type="number" step="0.000001" value="'+(temLoc?loc.lon.toFixed(6):'')+'" placeholder="-51.000000"></label></div><div class="config-actions"><button class="btn-secondary" onclick="usarMinhaLocalizacao()">Usar minha localização</button><button class="btn-save" onclick="salvarLocalizacao()">Salvar localização</button></div><div id="cfg-status" class="cfg-status"></div></div>';
-  setTimeout(()=>iniciarMapa(loc,temLoc),40);
-  editor.scrollIntoView({behavior:'smooth',block:'start'});
+  let loc=await getLocalizacaoEstacao(nome);const temLoc=!!loc;if(!loc)loc={lat:-14.235,lon:-51.925};
+  editor.innerHTML='<div class="config-panel"><div class="config-panel-title"><div><b>'+esc(e.codigo||e.nome)+'</b><small>'+esc(e.nome)+'</small></div><button onclick="fecharConfigMapa()">×</button></div><p class="config-help">Toque no mapa ou arraste o marcador. Depois salve a localização.</p><div id="station-map"></div><div class="coord-grid"><label>Latitude<input id="cfg-lat" type="number" step="0.000001" value="'+(temLoc?loc.lat.toFixed(6):'') +'" placeholder="-17.000000"></label><label>Longitude<input id="cfg-lon" type="number" step="0.000001" value="'+(temLoc?loc.lon.toFixed(6):'')+'" placeholder="-51.000000"></label></div><div class="config-actions"><button class="btn-secondary" onclick="usarMinhaLocalizacao()">Usar minha localização</button><button class="btn-save" onclick="salvarLocalizacao()">Salvar localização</button></div><div id="cfg-status" class="cfg-status"></div></div>';
+  setTimeout(()=>iniciarMapa(loc,temLoc),40);editor.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function iniciarMapa(loc,temLoc){
   if(mapaConfig){mapaConfig.remove();mapaConfig=null;marcadorConfig=null;}
@@ -591,213 +920,103 @@ function iniciarMapa(loc,temLoc){
   mapaConfig.on('click',e=>posicionarMarcador(e.latlng.lat,e.latlng.lng));
   setTimeout(()=>mapaConfig.invalidateSize(),120);
 }
-function posicionarMarcador(lat,lon){
-  if(!mapaConfig)return;
-  if(!marcadorConfig){
-    marcadorConfig=L.marker([lat,lon],{draggable:true}).addTo(mapaConfig);
-    marcadorConfig.on('dragend',()=>{const p=marcadorConfig.getLatLng();atualizarCamposCoord(p.lat,p.lng);});
-  }else marcadorConfig.setLatLng([lat,lon]);
-  atualizarCamposCoord(lat,lon);
-}
-function atualizarCamposCoord(lat,lon){
-  const a=document.getElementById('cfg-lat'),o=document.getElementById('cfg-lon');
-  if(a)a.value=Number(lat).toFixed(6);if(o)o.value=Number(lon).toFixed(6);
-}
-function usarMinhaLocalizacao(){
-  const st=document.getElementById('cfg-status');
-  if(!navigator.geolocation){if(st)st.textContent='Geolocalização não disponível neste navegador.';return;}
-  if(st)st.textContent='Obtendo sua localização…';
-  navigator.geolocation.getCurrentPosition(p=>{const lat=p.coords.latitude,lon=p.coords.longitude;posicionarMarcador(lat,lon);mapaConfig.setView([lat,lon],16);if(st)st.textContent='Localização posicionada. Confirme o ponto e salve.';},()=>{if(st)st.textContent='Não foi possível obter sua localização.';},{enableHighAccuracy:true,timeout:10000});
-}
-async function salvarLocalizacao(){
-  const lat=parseFloat(document.getElementById('cfg-lat').value),lon=parseFloat(document.getElementById('cfg-lon').value);
-  const st=document.getElementById('cfg-status');
-  if(!isFinite(lat)||!isFinite(lon)||lat<-90||lat>90||lon<-180||lon>180){st.textContent='Informe coordenadas válidas.';return;}
-  await cacheSet('localizacao:'+estacaoConfigAtual,{lat,lon});
-  st.textContent='✓ Localização salva neste dispositivo.';
-  if(estacaoConfigAtual===estacaoAtual&&dadosAtivos.length)atualizarPrevisaoExterna();
-}
+function posicionarMarcador(lat,lon){if(!mapaConfig)return;if(!marcadorConfig){marcadorConfig=L.marker([lat,lon],{draggable:true}).addTo(mapaConfig);marcadorConfig.on('dragend',()=>{const p=marcadorConfig.getLatLng();atualizarCamposCoord(p.lat,p.lng);});}else marcadorConfig.setLatLng([lat,lon]);atualizarCamposCoord(lat,lon);}
+function atualizarCamposCoord(lat,lon){const a=document.getElementById('cfg-lat'),o=document.getElementById('cfg-lon');if(a)a.value=Number(lat).toFixed(6);if(o)o.value=Number(lon).toFixed(6);}
+function usarMinhaLocalizacao(){const st=document.getElementById('cfg-status');if(!navigator.geolocation){if(st)st.textContent='Geolocalização não disponível neste navegador.';return;}if(st)st.textContent='Obtendo sua localização…';navigator.geolocation.getCurrentPosition(p=>{const lat=p.coords.latitude,lon=p.coords.longitude;posicionarMarcador(lat,lon);mapaConfig.setView([lat,lon],16);if(st)st.textContent='Localização posicionada. Confirme e salve.';},()=>{if(st)st.textContent='Não foi possível obter sua localização.';},{enableHighAccuracy:true,timeout:10000});}
+async function salvarLocalizacao(){const lat=parseFloat(document.getElementById('cfg-lat').value),lon=parseFloat(document.getElementById('cfg-lon').value);const st=document.getElementById('cfg-status');if(!isFinite(lat)||!isFinite(lon)||lat<-90||lat>90||lon<-180||lon>180){st.textContent='Informe coordenadas válidas.';return;}await cacheSet('localizacao:'+estacaoConfigAtual,{lat,lon});st.textContent='✓ Localização salva neste dispositivo.';if(estacaoConfigAtual===estacaoAtual&&dadosAtivos.length)atualizarPrevisaoExterna();}
 function fecharConfigMapa(){if(mapaConfig){mapaConfig.remove();mapaConfig=null;marcadorConfig=null;}const e=document.getElementById('config-editor');if(e)e.innerHTML='';}
 
-// ---------------- NOTIFICAÇÕES ----------------
-function getNotifyConfig(){
-  try{return Object.assign({enabled:false,station:'',lastPeriodic:0},JSON.parse(localStorage.getItem(NOTIFY_CFG_KEY)||'{}'));}
-  catch(e){return {enabled:false,station:'',lastPeriodic:0};}
-}
+/* ── Notifications ── */
+function getNotifyConfig(){try{return Object.assign({enabled:false,station:'',lastPeriodic:0},JSON.parse(localStorage.getItem(NOTIFY_CFG_KEY)||'{}'));}catch(e){return{enabled:false,station:'',lastPeriodic:0};}}
 function setNotifyConfig(cfg){localStorage.setItem(NOTIFY_CFG_KEY,JSON.stringify(cfg));return cfg;}
 function nomeEstacao(est){const e=estacoesDisponiveis.find(x=>x.nome===est);return e?(e.codigo||e.nome):est;}
-async function registrarServiceWorker(){
-  if(!('serviceWorker' in navigator)||!window.isSecureContext)return null;
-  try{swRegistration=await navigator.serviceWorker.register('./oort-agro-sw.js');return swRegistration;}
-  catch(e){console.warn('Service Worker indisponível',e);return null;}
-}
-async function mostrarNotificacao(titulo,corpo,tag){
-  if(!('Notification' in window)||Notification.permission!=='granted')return false;
-  const opts={body:corpo,icon:'https://raw.githubusercontent.com/oortbrasil/assets/main/icon.png',badge:'https://raw.githubusercontent.com/oortbrasil/assets/main/icon.png',tag,renotify:false,data:{url:location.href}};
-  try{
-    const reg=swRegistration||await registrarServiceWorker();
-    if(reg&&reg.showNotification){await reg.showNotification(titulo,opts);return true;}
-    new Notification(titulo,opts);return true;
-  }catch(e){console.warn('Falha ao exibir notificação',e);return false;}
-}
-function atualizarUINotificacoes(msg='',classe=''){
-  const btn=document.getElementById('notify-btn'),st=document.getElementById('notify-status'),sel=document.getElementById('notify-station');
-  if(!btn||!st)return;
-  const cfg=getNotifyConfig();
-  if(sel&&cfg.station&&[...sel.options].some(o=>o.value===cfg.station))sel.value=cfg.station;
-  btn.textContent=cfg.enabled?'Desativar notificações':'Ativar notificações';
-  btn.classList.toggle('off',cfg.enabled);
-  if(msg){st.textContent=msg;st.className='notify-status '+classe;return;}
-  if(!('Notification' in window)){st.textContent='Este navegador não oferece notificações web.';st.className='notify-status err';return;}
-  if(!window.isSecureContext){st.textContent='As notificações exigem HTTPS.';st.className='notify-status warn';return;}
-  if(cfg.enabled){
-    const resto=Math.max(0,NOTIFY_EVERY_MS-(Date.now()-(cfg.lastPeriodic||0))),h=Math.ceil(resto/3600000);
-    st.textContent='Ativas para '+nomeEstacao(cfg.station)+(cfg.lastPeriodic?' · próximo resumo em até '+h+' h':' · aguardando primeiro ciclo');st.className='notify-status ok';
-  }else{st.textContent=Notification.permission==='denied'?'Permissão de notificações bloqueada no navegador.':'Desativadas.';st.className='notify-status';}
-}
-function alterarEstacaoNotificacao(est){
-  const cfg=getNotifyConfig();
-  if(!cfg.enabled)return;
-  cfg.station=est;cfg.lastPeriodic=Date.now();setNotifyConfig(cfg);
-  localStorage.removeItem('oort-baro-alert:'+est);
-  atualizarUINotificacoes('Estação monitorada alterada para '+nomeEstacao(est)+'.','ok');
-  monitorarBarometroNotificacao().catch(()=>{});
-}
-async function alternarNotificacoes(){
-  const cfg=getNotifyConfig(),sel=document.getElementById('notify-station');
-  if(cfg.enabled){
-    cfg.enabled=false;setNotifyConfig(cfg);pararMonitorNotificacoes();atualizarUINotificacoes('Notificações desativadas.','');return;
-  }
-  if(!('Notification' in window)){atualizarUINotificacoes('Este navegador não oferece notificações web.','err');return;}
-  if(!window.isSecureContext){atualizarUINotificacoes('Abra o app por HTTPS para ativar notificações.','warn');return;}
-  const station=(sel&&sel.value)||estacaoAtual;
-  const loc=await getLocalizacaoEstacao(station);
-  if(!loc){atualizarUINotificacoes('Defina primeiro a localização da estação para calcular a chance de chuva em 12 h.','warn');return;}
-  let perm=Notification.permission;
-  if(perm!=='granted')perm=await Notification.requestPermission();
-  if(perm!=='granted'){atualizarUINotificacoes('Permissão não concedida. Ative-a nas configurações do navegador/sistema.','warn');return;}
-  await registrarServiceWorker();
-  cfg.enabled=true;cfg.station=station;cfg.lastPeriodic=Date.now();setNotifyConfig(cfg);
-  iniciarMonitorNotificacoes();
-  await mostrarNotificacao('Oort Agro · notificações ativadas','Monitorando '+nomeEstacao(cfg.station)+'. Resumo meteorológico a cada 3 horas.','oort-notify-enabled');
-  atualizarUINotificacoes('Ativas. O alerta barométrico será enviado uma única vez por evento.','ok');
-}
-function pararMonitorNotificacoes(){
-  if(notifyCheckTimer){clearInterval(notifyCheckTimer);notifyCheckTimer=null;}
-  if(baroMonitorTimer){clearInterval(baroMonitorTimer);baroMonitorTimer=null;}
-}
-function iniciarMonitorNotificacoes(){
-  pararMonitorNotificacoes();
-  const cfg=getNotifyConfig();
-  if(!cfg.enabled||!('Notification' in window)||Notification.permission!=='granted')return;
-  notifyCheckTimer=setInterval(()=>verificarResumoPeriodico().catch(()=>{}),60*1000);
-  baroMonitorTimer=setInterval(()=>monitorarBarometroNotificacao().catch(()=>{}),MONITOR_EVERY_MS);
-  verificarResumoPeriodico().catch(()=>{});
-  monitorarBarometroNotificacao().catch(()=>{});
-}
-async function obterDadosMonitoramento(est){
-  if(est===estacaoAtual&&dadosAtivos.length)return dadosAtivos;
-  let plist=await cacheGet('planilhas:'+est),planilhas=plist&&Array.isArray(plist.value)?plist.value:null;
-  if(!planilhas||!planilhas.length){
-    try{const d=await fetchJSON(API+'?action=planilhas&estacao='+encodeURIComponent(est),12000);if(d.ok){planilhas=d.planilhas||[];await cacheSet('planilhas:'+est,planilhas);}}catch(e){}
-  }
-  if(!planilhas||!planilhas.length)return [];
-  const plan=planilhas[0].nome,key='dados:'+est+':'+plan;
-  try{
-    const d=await fetchJSON(API+'?action=dados&estacao='+encodeURIComponent(est)+'&planilha='+encodeURIComponent(plan),18000);
-    if(d.ok&&Array.isArray(d.dados)&&d.dados.length){await cacheSet(key,d.dados);return d.dados;}
-  }catch(e){}
-  const c=await cacheGet(key);return c&&Array.isArray(c.value)?c.value:[];
-}
-async function verificarResumoPeriodico(){
-  const cfg=getNotifyConfig();
-  if(!cfg.enabled||Notification.permission!=='granted'||!cfg.station)return;
-  if(Date.now()-(cfg.lastPeriodic||0)<NOTIFY_EVERY_MS)return;
-  const [dados,w]=await Promise.all([obterDadosMonitoramento(cfg.station),obterPrevisaoEstacao(cfg.station,{forcar:true}).catch(()=>({data:null}))]);
-  const last=dados&&dados.length?dados[dados.length-1]:null;
-  if(!last||!w.data)return;
-  const temp=parseFloat(last.TempAr),chuva=chanceChuva12h(w.data);
-  const corpo='Temp: '+(isFinite(temp)?temp.toFixed(1)+'°C':'—')+', Chance de chuva 12h: '+(chuva===null?'—':chuva+'%');
-  const ok=await mostrarNotificacao('Oort Agro · '+nomeEstacao(cfg.station),corpo,'oort-weather-3h');
-  if(ok){cfg.lastPeriodic=Date.now();setNotifyConfig(cfg);atualizarUINotificacoes();}
-}
-async function monitorarBarometroNotificacao(){
-  const cfg=getNotifyConfig();
-  if(!cfg.enabled||!cfg.station)return;
-  const dados=await obterDadosMonitoramento(cfg.station);
-  const estado=calcularEstadoBarometrico(dados);
-  if(estado)await avaliarAlertaBarometrico(cfg.station,estado);
-}
-async function avaliarAlertaBarometrico(est,estado){
-  const cfg=getNotifyConfig();
-  if(!cfg.enabled||cfg.station!==est||!estado||Notification.permission!=='granted')return;
-  const key='oort-baro-alert:'+est,ativo=localStorage.getItem(key)==='1';
-  if(estado.alertaBrusco&&!ativo){
-    const corpo=estado.titulo+': '+estado.desc+' Tendência: '+(estado.delta3>0?'+':'')+estado.delta3.toFixed(1)+' hPa/3h.';
-    const ok=await mostrarNotificacao('⚠️ Oort Agro · mudança brusca',corpo,'oort-baro-alert');
-    if(ok)localStorage.setItem(key,'1');
-  }else if(!estado.alertaBrusco&&ativo){localStorage.removeItem(key);}
-}
+async function registrarServiceWorker(){if(!('serviceWorker' in navigator)||!window.isSecureContext)return null;try{swRegistration=await navigator.serviceWorker.register('./oort-agro-sw.js');return swRegistration;}catch(e){console.warn('SW indisponível',e);return null;}}
+async function mostrarNotificacao(titulo,corpo,tag){if(!('Notification' in window)||Notification.permission!=='granted')return false;const opts={body:corpo,icon:'https://raw.githubusercontent.com/oortbrasil/assets/main/icon.png',badge:'https://raw.githubusercontent.com/oortbrasil/assets/main/icon.png',tag,renotify:false,data:{url:location.href}};try{const reg=swRegistration||await registrarServiceWorker();if(reg&&reg.showNotification){await reg.showNotification(titulo,opts);return true;}new Notification(titulo,opts);return true;}catch(e){console.warn('Falha notificação',e);return false;}}
+function atualizarUINotificacoes(msg='',classe=''){const btn=document.getElementById('notify-btn'),st=document.getElementById('notify-status'),sel=document.getElementById('notify-station');if(!btn||!st)return;const cfg=getNotifyConfig();if(sel&&cfg.station&&[...sel.options].some(o=>o.value===cfg.station))sel.value=cfg.station;btn.textContent=cfg.enabled?'Desativar notificações':'Ativar notificações';btn.classList.toggle('off',cfg.enabled);if(msg){st.textContent=msg;st.className='notify-status '+classe;return;}if(!('Notification' in window)){st.textContent='Este navegador não oferece notificações web.';st.className='notify-status err';return;}if(!window.isSecureContext){st.textContent='As notificações exigem HTTPS.';st.className='notify-status warn';return;}if(cfg.enabled){const resto=Math.max(0,NOTIFY_EVERY_MS-(Date.now()-(cfg.lastPeriodic||0))),h=Math.ceil(resto/3600000);st.textContent='Ativas para '+nomeEstacao(cfg.station)+(cfg.lastPeriodic?' · próximo resumo em até '+h+' h':' · aguardando primeiro ciclo');st.className='notify-status ok';}else{st.textContent=Notification.permission==='denied'?'Permissão de notificações bloqueada no navegador.':'Desativadas.';st.className='notify-status';}}
+function alterarEstacaoNotificacao(est){const cfg=getNotifyConfig();if(!cfg.enabled)return;cfg.station=est;cfg.lastPeriodic=Date.now();setNotifyConfig(cfg);localStorage.removeItem('oort-baro-alert:'+est);atualizarUINotificacoes('Estação monitorada alterada para '+nomeEstacao(est)+'.','ok');monitorarBarometroNotificacao().catch(()=>{});}
+async function alternarNotificacoes(){const cfg=getNotifyConfig(),sel=document.getElementById('notify-station');if(cfg.enabled){cfg.enabled=false;setNotifyConfig(cfg);pararMonitorNotificacoes();atualizarUINotificacoes('Notificações desativadas.','');return;}if(!('Notification' in window)){atualizarUINotificacoes('Este navegador não oferece notificações web.','err');return;}if(!window.isSecureContext){atualizarUINotificacoes('Abra o app por HTTPS para ativar notificações.','warn');return;}const station=(sel&&sel.value)||estacaoAtual;const loc=await getLocalizacaoEstacao(station);if(!loc){atualizarUINotificacoes('Defina primeiro a localização da estação para calcular a chance de chuva em 12 h.','warn');return;}let perm=Notification.permission;if(perm!=='granted')perm=await Notification.requestPermission();if(perm!=='granted'){atualizarUINotificacoes('Permissão não concedida. Ative-a nas configurações do navegador/sistema.','warn');return;}await registrarServiceWorker();cfg.enabled=true;cfg.station=station;cfg.lastPeriodic=Date.now();setNotifyConfig(cfg);iniciarMonitorNotificacoes();await mostrarNotificacao('Oort Agro · notificações ativadas','Monitorando '+nomeEstacao(cfg.station)+'. Resumo meteorológico a cada 3 horas.','oort-notify-enabled');atualizarUINotificacoes('Ativas. O alerta barométrico será enviado uma única vez por evento.','ok');}
+function pararMonitorNotificacoes(){if(notifyCheckTimer){clearInterval(notifyCheckTimer);notifyCheckTimer=null;}if(baroMonitorTimer){clearInterval(baroMonitorTimer);baroMonitorTimer=null;}}
+function iniciarMonitorNotificacoes(){pararMonitorNotificacoes();const cfg=getNotifyConfig();if(!cfg.enabled||!('Notification' in window)||Notification.permission!=='granted')return;notifyCheckTimer=setInterval(()=>verificarResumoPeriodico().catch(()=>{}),60*1000);baroMonitorTimer=setInterval(()=>monitorarBarometroNotificacao().catch(()=>{}),MONITOR_EVERY_MS);verificarResumoPeriodico().catch(()=>{});monitorarBarometroNotificacao().catch(()=>{});}
+async function obterDadosMonitoramento(est){if(est===estacaoAtual&&dadosAtivos.length)return dadosAtivos;let plist=await cacheGet('planilhas:'+est),planilhas=plist&&Array.isArray(plist.value)?plist.value:null;if(!planilhas||!planilhas.length){try{const d=await fetchJSON(API+'?action=planilhas&estacao='+encodeURIComponent(est),12000);if(d.ok){planilhas=d.planilhas||[];await cacheSet('planilhas:'+est,planilhas);}}catch(e){}}if(!planilhas||!planilhas.length)return[];const plan=planilhas[0].nome,key='dados:'+est+':'+plan;try{const d=await fetchJSON(API+'?action=dados&estacao='+encodeURIComponent(est)+'&planilha='+encodeURIComponent(plan),18000);if(d.ok&&Array.isArray(d.dados)&&d.dados.length){await cacheSet(key,d.dados);return d.dados;}}catch(e){}const c=await cacheGet(key);return c&&Array.isArray(c.value)?c.value:[];}
+async function verificarResumoPeriodico(){const cfg=getNotifyConfig();if(!cfg.enabled||Notification.permission!=='granted'||!cfg.station)return;if(Date.now()-(cfg.lastPeriodic||0)<NOTIFY_EVERY_MS)return;const[dados,w]=await Promise.all([obterDadosMonitoramento(cfg.station),obterPrevisaoEstacao(cfg.station,{forcar:true}).catch(()=>({data:null}))]);const last=dados&&dados.length?dados[dados.length-1]:null;if(!last||!w.data)return;const temp=filterTemp(last.TempAr),chuva=chanceChuva12h(w.data);const corpo='Temp: '+(isFinite(temp)?temp.toFixed(1)+'°C':'—')+', Chance de chuva 12h: '+(chuva===null?'—':chuva+'%');const ok=await mostrarNotificacao('Oort Agro · '+nomeEstacao(cfg.station),corpo,'oort-weather-3h');if(ok){cfg.lastPeriodic=Date.now();setNotifyConfig(cfg);atualizarUINotificacoes();}}
+async function monitorarBarometroNotificacao(){const cfg=getNotifyConfig();if(!cfg.enabled||!cfg.station)return;const dados=await obterDadosMonitoramento(cfg.station);const estado=calcularEstadoBarometrico(dados);if(estado)await avaliarAlertaBarometrico(cfg.station,estado);}
+async function avaliarAlertaBarometrico(est,estado){const cfg=getNotifyConfig();if(!cfg.enabled||cfg.station!==est||!estado||Notification.permission!=='granted')return;const key='oort-baro-alert:'+est,ativo=localStorage.getItem(key)==='1';if(estado.alertaBrusco&&!ativo){const corpo=estado.titulo+': '+estado.desc+' Tendência: '+(estado.delta3>0?'+':'')+estado.delta3.toFixed(1)+' hPa/3h.';const ok=await mostrarNotificacao('⚠️ Oort Agro · mudança brusca',corpo,'oort-baro-alert');if(ok)localStorage.setItem(key,'1');}else if(!estado.alertaBrusco&&ativo){localStorage.removeItem(key);}}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){verificarResumoPeriodico().catch(()=>{});monitorarBarometroNotificacao().catch(()=>{});}});
 
-// ---------------- RENDER DOS DADOS ----------------
+/* ═══════════════════════════════════════════════════════
+   RENDERIZAR DADOS — ORDEM: previsão > cards > calendário > gráficos
+   ═══════════════════════════════════════════════════════ */
 function renderizar(dados){
   const body=document.getElementById('app-body');
   const datas=dados.map(d=>new Date(d.Date));
-  const tempAr=dados.map(d=>parseFloat(d.TempAr));
-  const umiAr=dados.map(d=>parseFloat(d.UmiAr));
-  const press=dados.map(d=>parseFloat(d.Press));
-  const gasRaw=dados.map(d=>parseFloat(d.IAQ));
+  const tempAr=dados.map(d=>filterTemp(d.TempAr));
+  const umiAr=dados.map(d=>filterVal(d.UmiAr));
+  const press=dados.map(d=>filterPress(d.Press));
+  const gasRaw=dados.map(d=>filterVal(d.IAQ));
   const gasValidos=gasRaw.filter(v=>isFinite(v)&&v>0);
   const gasBaseline=calcularBaselineGas(gasValidos);
-  const iaq=dados.map(d=>gasResistanceToIAQ(parseFloat(d.IAQ),gasBaseline));
-  const vento=dados.map(d=>parseFloat(d.Vento));
-  const temSolo=dados.map(d=>parseFloat(d.TemSolo));
-  const umiSolo=dados.map(d=>parseFloat(d.UmiSolo));
+  const iaq=dados.map(d=>gasResistanceToIAQ(filterVal(d.IAQ),gasBaseline));
+  const vento=dados.map(d=>filterVal(d.Vento));
+  const temSolo=dados.map(d=>filterVal(d.TemSolo));
+  const umiSolo=dados.map(d=>filterVal(d.UmiSolo));
   const last=dados[dados.length-1];
+
+  // Rain by day
   const pluviPorDia={};
   dados.forEach(d=>{const dia=String(d.Date).slice(0,10);const v=parseFloat(d.Pluvi);if(!isNaN(v))pluviPorDia[dia]=v;});
   const chuvaTotal=Object.values(pluviPorDia).reduce((a,b)=>a+b,0);
-  const tempOk=tempAr.filter(v=>!isNaN(v));
-  const umiOk=umiAr.filter(v=>!isNaN(v));
-  const ventoOk=vento.filter(v=>!isNaN(v));
+
+  const tempOk=tempAr.filter(v=>isFinite(v));
+  const umiOk=umiAr.filter(v=>isFinite(v));
+  const lastTemp=filterTemp(last.TempAr);
+  const lastPress=filterPress(last.Press);
 
   body.innerHTML=
+  // 2. Summary cards (Temp, Humidity, Rain, Pressure)
+    '<div class="summary">'+
+      '<div class="summary-card"><div class="s-label">Temp. Ar</div><div class="s-value s-temp">'+(isFinite(lastTemp)?lastTemp.toFixed(1):'-')+'<span class="s-unit">°C</span></div><div class="s-range">↓'+(tempOk.length?Math.min(...tempOk).toFixed(1):'-')+' ↑'+(tempOk.length?Math.max(...tempOk).toFixed(1):'-')+' °C</div></div>'+
+      '<div class="summary-card"><div class="s-label">Umidade Ar</div><div class="s-value s-umi">'+fmt(last.UmiAr)+'<span class="s-unit">%</span></div><div class="s-range">↓'+(umiOk.length?Math.min(...umiOk).toFixed(0):'-')+' ↑'+(umiOk.length?Math.max(...umiOk).toFixed(0):'-')+' %</div></div>'+
+      '<div class="summary-card"><div class="s-label">Chuva Acum.</div><div class="s-value s-chuva">'+chuvaTotal.toFixed(1)+'<span class="s-unit">mm</span></div><div class="s-range">Período selecionado</div></div>'+
+      '<div class="summary-card"><div class="s-label">Pressão</div><div class="s-value s-press">'+(isFinite(lastPress)?lastPress.toFixed(0):'-')+'<span class="s-unit">hPa</span></div><div class="s-range">Leitura atual</div></div>'+
+    '</div>'+
+    // 1. Forecast cards
     '<div class="forecast-grid">'+
       '<div class="forecast-card" id="forecast-api"><div class="forecast-loading"><span class="mini-spinner"></span>Consultando previsão meteorológica…</div></div>'+
       '<div class="forecast-card" id="forecast-baro"></div>'+
-    '</div>'+ 
-    '<div class="summary">'+
-      '<div class="summary-card"><div class="s-label">Temp. Ar</div><div class="s-value s-temp">'+fmt(last.TempAr)+'<span class="s-unit">°C</span></div><div class="s-range">↓'+(tempOk.length?Math.min(...tempOk).toFixed(1):'-')+' ↑'+(tempOk.length?Math.max(...tempOk).toFixed(1):'-')+' °C</div></div>'+
-      '<div class="summary-card"><div class="s-label">Umidade Ar</div><div class="s-value s-umi">'+fmt(last.UmiAr)+'<span class="s-unit">%</span></div><div class="s-range">↓'+(umiOk.length?Math.min(...umiOk).toFixed(0):'-')+' ↑'+(umiOk.length?Math.max(...umiOk).toFixed(0):'-')+' %</div></div>'+
-      '<div class="summary-card"><div class="s-label">Chuva Acum.</div><div class="s-value s-chuva">'+chuvaTotal.toFixed(1)+'<span class="s-unit">mm</span></div><div class="s-range">Período selecionado</div></div>'+
-      '<div class="summary-card"><div class="s-label">Vento</div><div class="s-value s-vento">'+fmt(last.Vento)+'<span class="s-unit">km/h</span></div><div class="s-range">↑'+(ventoOk.length?Math.max(...ventoOk).toFixed(1):'-')+' km/h pico</div></div>'+
-    '</div>'+ 
+    '</div>'+
+	// 3. Pluviometric calendar
+    '<div class="section-label">Calendário Pluviométrico</div>'+
+    '<div class="calendar-wrapper" id="cal-container"></div>'+
+    
+    
+    // 4. Charts
     '<div class="charts">'+
       '<div class="chart-section"><div class="section-label">Atmosfera</div>'+
-        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#ff7e5f"></span>Temperatura do Ar (°C)</div><canvas id="c-temp"></canvas></div>'+
-        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#00a8cc"></span>Umidade do Ar (%)</div><canvas id="c-umi"></canvas></div>'+
-        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#c0a0ff"></span>Pressão Atmosférica (hPa)</div><canvas id="c-press"></canvas></div>'+
+        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#ff7e5f;box-shadow:0 0 8px rgba(255,126,95,0.6)"></span>Temperatura do Ar (°C)</div><canvas class="real-chart" id="c-temp"></canvas></div>'+
+        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#00c8f0;box-shadow:0 0 8px rgba(0,200,240,0.6)"></span>Umidade do Ar (%)</div><canvas class="real-chart" id="c-umi"></canvas></div>'+
+        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#b08fff;box-shadow:0 0 8px rgba(176,143,255,0.6)"></span>Pressão Atmosférica (hPa)</div><canvas class="real-chart" id="c-press"></canvas></div>'+
       '</div>'+
       '<div class="chart-section"><div class="section-label">Precipitação</div>'+
-        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#00d4a0"></span>Chuva (mm)</div><div class="rain-bars" id="rain-bars"></div></div>'+
+        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#00e5b0;box-shadow:0 0 8px rgba(0,229,176,0.6)"></span>Chuva (mm)</div>'+
+        '<div id="rain-gauge-container"></div>'+
+        '</div>'+
       '</div>'+
       '<div class="chart-section"><div class="section-label">Qualidade &amp; Radiação</div>'+
         '<div class="chart-card"><div class="gauge-row">'+
-          '<div class="gauge-item"><div class="gauge-num" style="color:#f0a500">'+fmt0(gasResistanceToIAQ(parseFloat(last.IAQ),gasBaseline))+'</div><div class="gauge-sub">IAQ estimado · '+fmtGas(last.IAQ)+'</div><div class="gauge-badge" id="iaq-badge"></div></div>'+
-          '<div class="gauge-item"><div class="gauge-num" style="color:#ff9100">'+fmt1(last.UV)+'</div><div class="gauge-sub">Índice UV</div><div class="gauge-badge" id="uv-badge"></div></div>'+
+          '<div class="gauge-item"><div class="gauge-num" style="color:#f0a500;text-shadow:0 0 16px rgba(240,165,0,0.5)">'+fmt0(gasResistanceToIAQ(filterVal(last.IAQ),gasBaseline))+'</div><div class="gauge-sub">IAQ estimado · '+fmtGas(last.IAQ)+'</div><div class="gauge-badge" id="iaq-badge"></div></div>'+
+          '<div class="gauge-item"><div class="gauge-num" style="color:#ff9100;text-shadow:0 0 16px rgba(255,145,0,0.5)">'+fmt1(last.UV)+'</div><div class="gauge-sub">Índice UV</div><div class="gauge-badge" id="uv-badge"></div></div>'+
         '</div></div>'+
-        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#f0a500"></span>IAQ estimado ao longo do período</div><canvas id="c-iaq"></canvas></div>'+
+        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#f0a500;box-shadow:0 0 8px rgba(240,165,0,0.6)"></span>IAQ estimado ao longo do período</div><canvas class="real-chart" id="c-iaq"></canvas></div>'+
       '</div>'+
       '<div class="chart-section"><div class="section-label">Vento</div>'+
-        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#b8a0ff"></span>Velocidade do Vento (km/h)</div><canvas id="c-vento"></canvas></div>'+
+        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#b8a0ff;box-shadow:0 0 8px rgba(184,160,255,0.6)"></span>Velocidade do Vento (km/h)</div><canvas class="real-chart" id="c-vento"></canvas></div>'+
       '</div>'+
       '<div class="chart-section"><div class="section-label">Solo</div>'+
         '<div class="chart-card"><div class="chart-title">Leituras atuais</div><div class="solo-row">'+
           '<div class="solo-card"><div class="solo-val" style="color:#c8a06a">'+fmt(last.TemSolo)+'°C</div><div class="solo-lbl">Temp. Solo</div></div>'+
           '<div class="solo-card"><div class="solo-val" style="color:#4db8a0">'+fmt0(last.UmiSolo)+'%</div><div class="solo-lbl">Umidade Solo</div></div>'+
         '</div></div>'+
-        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#c8a06a"></span>Temperatura e Umidade do Solo</div><canvas id="c-solo"></canvas></div>'+
+        '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#c8a06a;box-shadow:0 0 8px rgba(200,160,106,0.6)"></span>Temperatura e Umidade do Solo</div><canvas class="real-chart" id="c-solo"></canvas></div>'+
       '</div>'+
       '<div class="chart-section"><div class="section-label">Sistema</div>'+
         '<div class="chart-card"><div class="chart-title">Bateria</div><div class="bat-indicator">'+
@@ -807,82 +1026,530 @@ function renderizar(dados){
       '</div>'+
     '</div>';
 
-  const opts={tension:.3,pointRadius:0,borderWidth:1.8};
-  chartInstances.push(makeChart('c-temp',datas,[{label:'Temp Ar',data:tempAr,borderColor:'#ff7e5f',...opts}],'°C'));
-  chartInstances.push(makeChart('c-umi', datas,[{label:'Umidade',data:umiAr, borderColor:'#00a8cc',...opts}],'%'));
-  chartInstances.push(makeChart('c-press',datas,[{label:'Pressão',data:press, borderColor:'#c0a0ff',...opts}],'hPa'));
-  chartInstances.push(makeChart('c-iaq', datas,[{label:'IAQ estimado',data:iaq,borderColor:'#f0a500',...opts}],''));
-  chartInstances.push(makeChart('c-vento',datas,[{label:'Vento',data:vento,borderColor:'#b8a0ff',fill:true,backgroundColor:'rgba(184,160,255,.08)',...opts}],'km/h'));
-  chartInstances.push(makeChart('c-solo',datas,[{label:'Temp Solo',data:temSolo,borderColor:'#c8a06a',yAxisID:'y',...opts},{label:'Umi Solo',data:umiSolo,borderColor:'#4db8a0',yAxisID:'y1',...opts}],'',true));
+  /* Neon chart options */
+  const baseOpts={tension:.4,pointRadius:0,borderWidth:2};
+  const neonPlugin={
+    id:'neonGlow',
+    beforeDraw(chart){
+      const ctx=chart.ctx;ctx.save();
+      chart.data.datasets.forEach((ds,i)=>{
+        const meta=chart.getDatasetMeta(i);
+        if(!meta.hidden&&ds.borderColor){
+          ctx.shadowColor=ds.borderColor;ctx.shadowBlur=10;
+          meta.data.forEach((pt,j)=>{if(j===0)return;const prev=meta.data[j-1];ctx.beginPath();ctx.moveTo(prev.x,prev.y);ctx.lineTo(pt.x,pt.y);ctx.strokeStyle=ds.borderColor;ctx.lineWidth=(ds.borderWidth||2)*0.5;ctx.stroke();});
+        }
+      });
+      ctx.restore();
+    }
+  };
+  Chart.register(neonPlugin);
 
-  const chuvaByKey={};
-  dados.forEach(d=>{const key=periodoAtivo==='hoje'?new Date(d.Date).getHours()+'h':new Date(d.Date).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});const v=parseFloat(d.Pluvi);if(!isNaN(v))chuvaByKey[key]=v;});
-  const keys=Object.keys(chuvaByKey),maxCh=Math.max(...Object.values(chuvaByKey),1);
-  document.getElementById('rain-bars').innerHTML=keys.slice(-24).map(k=>{const val=chuvaByKey[k],pct=(val/maxCh)*100;return '<div class="rain-bar-wrap">'+(val>0?'<div class="rain-val">'+val.toFixed(1)+'</div>':'<div class="rain-val">&nbsp;</div>')+'<div class="rain-bar" style="height:'+Math.max(pct,2)+'%"></div><div class="rain-label">'+k.split('/')[0]+'</div></div>';}).join('')+'<div class="rain-axis"></div>';
+  chartInstances.push(makeChart('c-temp',datas,[{label:'Temp Ar',data:tempAr.map((v,i)=>isFinite(v)?{x:datas[i],y:v}:null).filter(Boolean),borderColor:'#ff7e5f',...baseOpts}],'°C'));
+  chartInstances.push(makeChart('c-umi', datas,[{label:'Umidade',data:umiAr.map((v,i)=>isFinite(v)?{x:datas[i],y:v}:null).filter(Boolean),borderColor:'#00c8f0',...baseOpts}],'%'));
+  chartInstances.push(makeChart('c-press',datas,[{label:'Pressão',data:press.map((v,i)=>isFinite(v)?{x:datas[i],y:v}:null).filter(Boolean),borderColor:'#b08fff',...baseOpts}],'hPa'));
+  chartInstances.push(makeChart('c-iaq', datas,[{label:'IAQ estimado',data:iaq.map((v,i)=>isFinite(v)?{x:datas[i],y:v}:null).filter(Boolean),borderColor:'#f0a500',...baseOpts}],''));
+  chartInstances.push(makeChart('c-vento',datas,[{label:'Vento',data:vento.map((v,i)=>isFinite(v)?{x:datas[i],y:v}:null).filter(Boolean),borderColor:'#b8a0ff',fill:true,backgroundColor:'rgba(184,160,255,.06)',...baseOpts}],'km/h'));
+  chartInstances.push(makeChart('c-solo',datas,[
+    {label:'Temp Solo',data:temSolo.map((v,i)=>isFinite(v)?{x:datas[i],y:v}:null).filter(Boolean),borderColor:'#c8a06a',yAxisID:'y',...baseOpts},
+    {label:'Umi Solo',data:umiSolo.map((v,i)=>isFinite(v)?{x:datas[i],y:v}:null).filter(Boolean),borderColor:'#4db8a0',yAxisID:'y1',...baseOpts}
+  ],'',true));
 
+  /* Rain gauge — build both and show based on current selection */
+  renderRainGauge(dados,pluviPorDia);
+
+  /* Battery */
   const batPct=Math.min(100,Math.max(0,(parseFloat(last.Bat)/4.2)*100));
-  const batCol=batPct>50?'#00d4a0':batPct>20?'#f0a500':'#e05c5c';
-  document.getElementById('bat-fill').style.cssText='width:'+batPct+'%;background:'+batCol;
-  document.getElementById('bat-val').textContent=fmt1(last.Bat)+'V';
-  document.getElementById('bat-val').style.color=batCol;
-  const iaqAtual=gasResistanceToIAQ(parseFloat(last.IAQ),gasBaseline);
+  const batCol=batPct>50?'#00e5b0':batPct>20?'#f0a500':'#e05c5c';
+  document.getElementById('bat-fill').style.cssText='width:'+batPct+'%;background:'+batCol+';box-shadow:0 0 10px '+batCol+'66';
+  document.getElementById('bat-val').textContent=fmt1(last.Bat)+'V';document.getElementById('bat-val').style.color=batCol;
+
+  const iaqAtual=gasResistanceToIAQ(filterVal(last.IAQ),gasBaseline);
   const iaqB=document.getElementById('iaq-badge');iaqB.textContent=iaqLabel(iaqAtual);iaqB.style.cssText='background:'+iaqColor(iaqAtual)+'33;color:'+iaqColor(iaqAtual);
   const uvB=document.getElementById('uv-badge');uvB.textContent=uvLabel(parseFloat(last.UV));uvB.style.cssText='background:#ff910033;color:#ff9100';
 
   renderPrevisaoBarometrica(dados);
   atualizarPrevisaoExterna();
+
+  /* Render pluviometric calendar with real data */
+  renderCalendario(pluviPorDia,dados);
 }
 
+/* ── Rain gauge rendering ── */
+let gaugeTypeSelection='liquido'; // default: new liquid style
+function renderRainGauge(dados,pluviPorDia){
+  const container=document.getElementById('rain-gauge-container');if(!container)return;
+  gaugeTypeSelection=document.getElementById('cal-container')?
+    (document.querySelector('.gauge-type-select')?.value||'liquido'):'liquido';
+  renderRainGaugeInContainer(container,dados,pluviPorDia,gaugeTypeSelection);
+}
+
+function renderRainGaugeInContainer(container,dados,pluviPorDia,type){
+  if(type==='barras'){
+    // Classic bar chart
+    const chuvaByKey={};
+    dados.forEach(d=>{
+      const key=periodoAtivo==='hoje'?new Date(d.Date).getHours()+'h':new Date(d.Date).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+      const v=parseFloat(d.Pluvi);if(!isNaN(v))chuvaByKey[key]=v;
+    });
+    const keys=Object.keys(chuvaByKey),maxCh=Math.max(...Object.values(chuvaByKey),1);
+    container.innerHTML='<div class="rain-bars" id="rain-bars">'+keys.slice(-24).map(k=>{const val=chuvaByKey[k],pct=(val/maxCh)*100;return '<div class="rain-bar-wrap">'+(val>0?'<div class="rain-val">'+val.toFixed(1)+'</div>':'<div class="rain-val">&nbsp;</div>')+'<div class="rain-bar" style="height:'+Math.max(pct,2)+'%"></div><div class="rain-label">'+k.split('/')[0]+'</div></div>';}).join('')+'<div class="rain-axis"></div></div>';
+  }else{
+    // New mini calendar liquid style (compact daily view)
+    const sortedDays=Object.keys(pluviPorDia).sort();const maxMm=Math.max(...Object.values(pluviPorDia),1);
+    if(!sortedDays.length){container.innerHTML='<div style="text-align:center;color:var(--muted);padding:20px;font-size:12px">Sem dados de chuva para o período</div>';return;}
+    container.innerHTML='<div style="display:flex;gap:4px;align-items:flex-end;padding:8px 4px 4px;overflow-x:auto;min-height:80px;">'+
+      sortedDays.slice(-24).map(dia=>{
+        const mm=pluviPorDia[dia]||0;const pct=(mm/maxMm)*100;const d=new Date(dia+'T12:00:00');const label=d.getDate()+'/'+String(d.getMonth()+1).padStart(2,'0');
+        const col=mm<=0?'rgba(14,30,46,0.5)':mm<15?'rgba(0,200,180,0.5)':mm<40?'rgba(0,180,220,0.75)':'rgba(80,130,255,0.85)';
+        const glow=mm>0?'box-shadow:0 0 8px '+(mm<15?'rgba(0,200,180,0.4)':'rgba(0,180,220,0.5)')+';':'';
+        return '<div style="flex:1;min-width:28px;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
+          (mm>0?'<span style="font-size:7px;color:var(--accent);font-weight:700">'+mm.toFixed(1)+'</span>':'<span style="font-size:7px">&nbsp;</span>')+
+          '<div style="width:100%;height:60px;background:rgba(10,20,32,0.4);border-radius:5px;border:1px solid rgba(0,229,176,0.1);display:flex;align-items:flex-end;overflow:hidden">'+
+            '<div style="width:100%;height:'+Math.max(pct,2)+'%;background:'+col+';border-radius:3px 3px 0 0;'+glow+'transition:height .4s"></div>'+
+          '</div>'+
+          '<span style="font-size:8px;color:var(--muted)">'+label+'</span>'+
+        '</div>';
+      }).join('')+
+    '</div>';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   CALENDÁRIO PLUVIOMÉTRICO — REAL DATA
+   ═══════════════════════════════════════════════════════ */
+let calTileElements=[];
+let calRainCanvas=null;
+let calRainCtx=null;
+let calDrops=[];
+let calRainIntensity=0;
+let calTargetIntensity=0;
+let calRafId=null;
+let calStageEl=null;
+let currentCalMonth=null; // {year, month (0-based)}
+let calPluviData={};      // { 'YYYY-MM-DD': mm }
+let calDadosRef=[];
+
+function renderCalendario(pluviPorDia,dados){
+  calPluviData=pluviPorDia||{};calDadosRef=dados||[];
+  // Determine which month to show (last data month or current)
+  const datas=Object.keys(pluviPorDia).sort();
+  if(datas.length){
+    const last=datas[datas.length-1];
+    currentCalMonth={year:parseInt(last.slice(0,4)),month:parseInt(last.slice(5,7))-1};
+  }else{
+    const n=new Date();currentCalMonth={year:n.getFullYear(),month:n.getMonth()};
+  }
+  buildCalendarDOM();
+}
+
+function buildCalendarDOM(){
+  const container=document.getElementById('cal-container');if(!container)return;
+
+  container.innerHTML=`
+    <div class="calendar-stage" id="cal-stage">
+      <div class="cal-sky-layer"></div>
+      <canvas id="cal-rain-canvas"></canvas>
+      <div class="cal-inner">
+        <div class="cal-topbar">
+          <div class="cal-month-nav">
+            <button class="cal-nav-btn" id="cal-prev">❮</button>
+            <div class="cal-month-label" id="cal-month-lbl">—</div>
+            <button class="cal-nav-btn" id="cal-next">❯</button>
+          </div>
+          <div class="gauge-type-wrap">
+            <span class="gauge-type-label">Pluviômetro</span>
+            <select class="gauge-type-select" id="gauge-type-sel" onchange="onGaugeTypeChange(this.value)">
+              <option value="liquido" selected>💧 Liquid Glass</option>
+              <option value="barras">📊 Barras Clássico</option>
+            </select>
+          </div>
+        </div>
+        <div class="cal-layout">
+          <div>
+            <div class="cal-weekdays">
+              <div class="cal-weekday-lbl">Dom</div>
+              <div class="cal-weekday-lbl">Seg</div>
+              <div class="cal-weekday-lbl">Ter</div>
+              <div class="cal-weekday-lbl">Qua</div>
+              <div class="cal-weekday-lbl">Qui</div>
+              <div class="cal-weekday-lbl">Sex</div>
+              <div class="cal-weekday-lbl">Sáb</div>
+            </div>
+            <div class="cal-days-grid" id="cal-days-grid"></div>
+            <div class="cal-legend">
+              <div class="cal-legend-items">
+                <div class="cal-legend-item"><span class="cal-legend-swatch" style="width:10px;height:10px;background:rgba(14,30,46,0.6)"></span><span>Sem chuva</span></div>
+                <div class="cal-legend-item"><span class="cal-legend-swatch" style="width:10px;height:10px;background:rgba(0,180,160,0.5)"></span><span>&lt;15mm</span></div>
+                <div class="cal-legend-item"><span class="cal-legend-swatch" style="width:10px;height:10px;background:rgba(0,160,220,0.75)"></span><span>15–45mm</span></div>
+                <div class="cal-legend-item"><span class="cal-legend-swatch" style="width:10px;height:10px;background:rgba(80,130,255,0.9)"></span><span>45mm+</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="cal-inspector" id="cal-inspector">
+            <div class="cal-insp-content">
+              <div>
+                <div class="cal-insp-header">
+                  <span class="cal-insp-date" id="cal-insp-date">SELECIONE UM DIA</span>
+                  <span class="cal-insp-status" id="cal-insp-status">—</span>
+                </div>
+                <div class="cal-hero">
+                  <span class="cal-hero-val" id="cal-hero-val">—</span>
+                  <span class="cal-hero-unit" id="cal-hero-unit"></span>
+                </div>
+                <div class="cal-insp-desc" id="cal-insp-desc">Clique em um dia do calendário para ver os detalhes de precipitação.</div>
+              </div>
+              <div class="cal-gauge-box">
+                <div class="cal-gauge-header">
+                  <span>Volume relativo diário</span>
+                  <span id="cal-gauge-pct">—</span>
+                </div>
+                <div class="cal-gauge-track"><div class="cal-gauge-fill" id="cal-gauge-fill"></div></div>
+              </div>
+              <div class="cal-tele-grid">
+                <div class="cal-tele-item"><div class="cal-tele-label">Temp. Mínima</div><div class="cal-tele-val" id="cal-tele-tmin">—</div></div>
+                <div class="cal-tele-item"><div class="cal-tele-label">Temp. Máxima</div><div class="cal-tele-val" id="cal-tele-tmax">—</div></div>
+                <div class="cal-tele-item"><div class="cal-tele-label">Umidade Méd.</div><div class="cal-tele-val" id="cal-tele-umi">—</div></div>
+                <div class="cal-tele-item"><div class="cal-tele-label">Pressão Méd.</div><div class="cal-tele-val" id="cal-tele-press">—</div></div>
+              </div>
+              <div class="cal-month-strip">
+                <span>Acumulado no Mês: <strong id="cal-month-total">—</strong></span>
+                <span>Dias c/ Chuva: <strong id="cal-month-rainy">—</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  calStageEl=document.getElementById('cal-stage');
+  calRainCanvas=document.getElementById('cal-rain-canvas');
+  calRainCtx=calRainCanvas.getContext('2d');
+  document.getElementById('cal-prev').addEventListener('click',()=>{if(currentCalMonth.month===0){currentCalMonth={year:currentCalMonth.year-1,month:11};}else{currentCalMonth.month--;}renderCalMonth();});
+  document.getElementById('cal-next').addEventListener('click',()=>{if(currentCalMonth.month===11){currentCalMonth={year:currentCalMonth.year+1,month:0};}else{currentCalMonth.month++;}renderCalMonth();});
+
+  initCalRain();
+  renderCalMonth();
+  if(calRafId)cancelAnimationFrame(calRafId);
+  animateCalRain();
+}
+
+function onGaugeTypeChange(val){
+  gaugeTypeSelection=val;
+  // Re-render rain gauge section
+  const container=document.getElementById('rain-gauge-container');
+  if(container&&calDadosRef.length){
+    renderRainGaugeInContainer(container,calDadosRef,calPluviData,val);
+  }
+  // Also update day tile style
+  document.querySelectorAll('.cal-day-tile').forEach(t=>{
+    if(val==='barras'){t.classList.add('style-bars');}else{t.classList.remove('style-bars');}
+  });
+}
+
+function renderCalMonth(){
+  const {year,month}=currentCalMonth;
+  const monthNames=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  document.getElementById('cal-month-lbl').textContent=monthNames[month]+' '+year;
+
+  const grid=document.getElementById('cal-days-grid');grid.innerHTML='';calTileElements=[];
+  const firstDay=new Date(year,month,1).getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+
+  // Month totals
+  let monthTotal=0,rainyDays=0;
+  for(let d=1;d<=daysInMonth;d++){
+    const key=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const mm=calPluviData[key]||0;if(mm>0){monthTotal+=mm;rainyDays++;}
+  }
+  document.getElementById('cal-month-total').textContent=monthTotal.toFixed(1)+' mm';
+  document.getElementById('cal-month-rainy').textContent=rainyDays+' dias';
+
+  // Max rain this month for scaling
+  let maxMm=0;
+  for(let d=1;d<=daysInMonth;d++){
+    const key=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    maxMm=Math.max(maxMm,calPluviData[key]||0);
+  }
+
+  // Empty cells
+  for(let e=0;e<firstDay;e++){const slot=document.createElement('div');slot.className='cal-day-slot';grid.appendChild(slot);}
+
+  for(let d=1;d<=daysInMonth;d++){
+    const dateKey=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const mm=calPluviData[dateKey]||0;
+    const vis=computeCalTileVisuals(mm,maxMm);
+    const isBarsStyle=gaugeTypeSelection==='barras';
+
+    const slot=document.createElement('div');slot.className='cal-day-slot';
+    const tile=document.createElement('div');
+    tile.className='cal-day-tile'+(isBarsStyle?' style-bars':'');
+    tile.dataset.dateKey=dateKey;tile.dataset.mm=mm;
+
+    tile.style.setProperty('--size-pct','55%');
+    tile.style.setProperty('--tile-radius',vis.radius+'px');
+    tile.style.setProperty('--tile-bg',vis.bg);
+    tile.style.setProperty('--tile-border',vis.border);
+    tile.style.setProperty('--tile-shadow',vis.shadow);
+    tile.style.setProperty('--water-level','0%');
+    tile.style.setProperty('--liquid-grad',vis.liquidGrad);
+    tile.style.setProperty('--num-size',vis.numSize);
+    tile.style.setProperty('--mm-opacity',vis.mmOpacity);
+    tile.style.setProperty('--droplet-opacity',vis.dropletOpacity);
+
+    tile.innerHTML=
+      '<div class="cal-liquid-fill"></div>'+
+      '<div class="cal-bar-fill"></div>'+
+      '<div class="cal-tile-drops"></div>'+
+      '<span class="cal-day-num">'+d+'</span>'+
+      '<span class="cal-day-mm">'+(mm>0?mm.toFixed(1)+'mm':'')+'</span>';
+
+    slot.appendChild(tile);grid.appendChild(slot);
+
+    const cellIdx=firstDay+(d-1);
+    const row=Math.floor(cellIdx/7);const col=cellIdx%7;
+    const tRef={el:tile,mm,dateKey,row,col};
+    calTileElements.push(tRef);
+
+    const delay=(d-1)*12;
+    setTimeout(()=>{
+      tile.style.setProperty('--size-pct',vis.sizePct+'%');
+      tile.style.setProperty('--water-level',vis.waterLevel+'%');
+      tile.style.setProperty('--bar-h',vis.waterLevel+'%');
+    },delay);
+
+    tile.addEventListener('pointerenter',()=>{applyCalRepulsion(tRef);selectCalDay(dateKey,mm);});
+    tile.addEventListener('click',()=>selectCalDay(dateKey,mm));
+  }
+
+  grid.addEventListener('pointerleave',resetCalRepulsion);
+
+  // Auto-select most rainy day or today
+  let bestKey=null,bestMm=-1;
+  for(let d=1;d<=daysInMonth;d++){
+    const k=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const mm=calPluviData[k]||0;if(mm>bestMm){bestMm=mm;bestKey=k;}
+  }
+  if(bestKey)selectCalDay(bestKey,bestMm);
+
+  // Resize canvas
+  if(calStageEl&&calRainCanvas){calRainCanvas.width=calStageEl.clientWidth;calRainCanvas.height=calStageEl.clientHeight;}
+}
+
+function computeCalTileVisuals(mm,maxMm){
+  if(mm<=0){return{sizePct:72,radius:12,bg:'rgba(14,30,46,0.55)',border:'rgba(255,255,255,0.07)',shadow:'0 3px 8px rgba(0,0,0,0.25)',waterLevel:0,liquidGrad:'transparent',numSize:'.78rem',mmOpacity:0,dropletOpacity:0};}
+  const refMax=Math.max(maxMm,80);
+  const norm=Math.min(1,Math.pow(mm/refMax,0.6));
+  const sizePct=Math.round(78+norm*22);const radius=Math.round(12+norm*6);const waterLevel=Math.round(20+norm*80);
+  let bg,border,shadow,liquidGrad;
+  if(mm<15){bg='rgba(0,100,120,0.35)';border='rgba(0,200,180,0.35)';shadow='0 5px 12px rgba(0,180,160,0.2)';liquidGrad='linear-gradient(180deg,rgba(0,229,176,0.4),rgba(0,180,140,0.65))';}
+  else if(mm<45){bg='rgba(0,80,160,0.45)';border='rgba(0,180,220,0.6)';shadow='0 8px 18px rgba(0,160,220,0.35)';liquidGrad='linear-gradient(180deg,rgba(0,200,230,0.65),rgba(0,140,200,0.88))';}
+  else{bg='rgba(20,40,120,0.6)';border='rgba(120,180,255,0.85)';shadow='0 10px 24px rgba(80,140,255,0.5)';liquidGrad='linear-gradient(180deg,rgba(140,200,255,0.8) 0%,rgba(60,120,220,0.95) 55%,rgba(80,60,220,0.95) 100%)';}
+  return{sizePct,radius,bg,border,shadow,waterLevel,liquidGrad,numSize:(0.8+norm*0.14).toFixed(2)+'rem',mmOpacity:1,dropletOpacity:norm>0.4?(norm*0.8).toFixed(2):0};
+}
+
+function applyCalRepulsion(hovered){
+  calTileElements.forEach(item=>{
+    if(item===hovered){item.el.style.setProperty('--hover-scale','1.1');item.el.style.setProperty('--push-x','0px');item.el.style.setProperty('--push-y','0px');return;}
+    const dCol=item.col-hovered.col,dRow=item.row-hovered.row,dist=Math.hypot(dCol,dRow);
+    if(dist>0&&dist<=1.8){const force=(2-dist)*4;item.el.style.setProperty('--push-x',(dCol/dist*force).toFixed(1)+'px');item.el.style.setProperty('--push-y',(dRow/dist*force).toFixed(1)+'px');item.el.style.setProperty('--hover-scale','0.96');}
+    else{item.el.style.setProperty('--push-x','0px');item.el.style.setProperty('--push-y','0px');item.el.style.setProperty('--hover-scale','1');}
+  });
+}
+function resetCalRepulsion(){calTileElements.forEach(t=>{t.el.style.setProperty('--push-x','0px');t.el.style.setProperty('--push-y','0px');t.el.style.setProperty('--hover-scale','1');});}
+
+function selectCalDay(dateKey,mm){
+  calTileElements.forEach(t=>t.el.classList.toggle('cal-selected',t.dateKey===dateKey));
+  const d=new Date(dateKey+'T12:00:00');
+  const monthNames=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  document.getElementById('cal-insp-date').textContent=`DIA ${String(d.getDate()).padStart(2,'0')} • ${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+  document.getElementById('cal-hero-val').textContent=mm>0?mm.toFixed(1):'0';
+  document.getElementById('cal-hero-unit').textContent=mm>0?'mm':'';
+
+  const statusEl=document.getElementById('cal-insp-status');
+  const descEl=document.getElementById('cal-insp-desc');
+  const gaugePct=Math.min(100,Math.round((mm/80)*100));
+  document.getElementById('cal-gauge-pct').textContent=mm>0?(gaugePct+'% do ref.'):'Tempo Seco';
+  document.getElementById('cal-gauge-fill').style.width=gaugePct+'%';
+
+  if(mm===0){
+    statusEl.innerHTML='☀️ Sem Chuva';descEl.textContent='Nenhuma precipitação registrada neste dia.';
+    calTargetIntensity=0;if(calStageEl){calStageEl.classList.add('cal-sunny');calStageEl.classList.remove('cal-rainy');}
+  }else if(mm<15){
+    statusEl.innerHTML='🌦️ Chuva Leve';descEl.textContent='Precipitação leve. Favorável à absorção gradual do solo.';
+    calTargetIntensity=0.3;if(calStageEl){calStageEl.classList.remove('cal-sunny');calStageEl.classList.add('cal-rainy');}
+  }else if(mm<45){
+    statusEl.innerHTML='🌧️ Chuva Expressiva';descEl.textContent='Volume hídrico elevado registrado pelos sensores locais.';
+    calTargetIntensity=0.65;if(calStageEl){calStageEl.classList.remove('cal-sunny');calStageEl.classList.add('cal-rainy');}
+  }else{
+    statusEl.innerHTML='⛈️ Tempestade';descEl.textContent='Evento de alta intensidade pluviométrica. Alerta da estação ativo.';
+    calTargetIntensity=1.0;if(calStageEl){calStageEl.classList.remove('cal-sunny');calStageEl.classList.add('cal-rainy');}
+  }
+
+  // Real station data for the selected day
+  const dayData=calDadosRef.filter(r=>String(r.Date).slice(0,10)===dateKey);
+  if(dayData.length){
+    const tmins=dayData.map(r=>filterTemp(r.TempAr)).filter(isFinite);
+    const umis=dayData.map(r=>filterVal(r.UmiAr)).filter(isFinite);
+    const presses=dayData.map(r=>filterPress(r.Press)).filter(isFinite);
+    document.getElementById('cal-tele-tmin').textContent=tmins.length?Math.min(...tmins).toFixed(1)+'°C':'—';
+    document.getElementById('cal-tele-tmax').textContent=tmins.length?Math.max(...tmins).toFixed(1)+'°C':'—';
+    document.getElementById('cal-tele-umi').textContent=umis.length?Math.round(umis.reduce((a,b)=>a+b)/umis.length)+'%':'—';
+    document.getElementById('cal-tele-press').textContent=presses.length?Math.round(presses.reduce((a,b)=>a+b)/presses.length)+' hPa':'—';
+  }else{
+    ['cal-tele-tmin','cal-tele-tmax','cal-tele-umi','cal-tele-press'].forEach(id=>document.getElementById(id).textContent='—');
+  }
+}
+
+/* ── Calendar Rain Animation ── */
+function initCalRain(){
+  if(!calStageEl)return;
+  calRainCanvas.width=calStageEl.clientWidth||600;calRainCanvas.height=calStageEl.clientHeight||400;
+  calDrops=[];
+  for(let i=0;i<60;i++){
+    const z=Math.random();
+    calDrops.push({x:Math.random()*calRainCanvas.width,y:Math.random()*calRainCanvas.height,z,len:10+z*14,vy:6+z*7,vx:-0.4-z*0.3,alpha:0.12+z*0.3});
+  }
+}
+function animateCalRain(){
+  if(!calRainCtx||!calRainCanvas.width)return;
+  calRainIntensity+=(calTargetIntensity-calRainIntensity)*0.05;
+  calRainCtx.clearRect(0,0,calRainCanvas.width,calRainCanvas.height);
+  if(calRainIntensity>0.03){
+    calRainCtx.lineCap='round';
+    for(const d of calDrops){
+      d.x+=d.vx;d.y+=d.vy*(0.6+calRainIntensity*0.5);
+      if(d.y>calRainCanvas.height+20){d.y=-15;d.x=Math.random()*calRainCanvas.width;}
+      if(d.x<-5)d.x=calRainCanvas.width+5;
+      const eff=d.alpha*calRainIntensity;
+      const g=calRainCtx.createLinearGradient(d.x,d.y-d.len,d.x,d.y);
+      g.addColorStop(0,'rgba(180,220,255,0)');g.addColorStop(1,'rgba(180,220,255,'+eff+')');
+      calRainCtx.strokeStyle=g;calRainCtx.lineWidth=d.z>0.6?1.4:0.9;
+      calRainCtx.beginPath();calRainCtx.moveTo(d.x-d.vx,d.y-d.len);calRainCtx.lineTo(d.x,d.y);calRainCtx.stroke();
+    }
+  }
+  calRafId=requestAnimationFrame(animateCalRain);
+}
+
+/* ═══════════════════════════════════════════════════════
+   GLOBAL ATMOSPHERE
+   ═══════════════════════════════════════════════════════ */
+const globalSkyCanvas=document.getElementById('global-sky-canvas');
+const globalRainCanvas=document.getElementById('global-rain-canvas');
+const globalSkyCtx=globalSkyCanvas.getContext('2d');
+const globalRainCtx=globalRainCanvas.getContext('2d');
+let globalRainDrops=[];
+let globalClouds=[];
+let globalRainIntensity=0;
+let globalTargetIntensity=0;
+let globalAtmosphereMode='neutral';
+
+function setGlobalAtmosphere(mode,intensity=0){
+  globalAtmosphereMode=mode;
+  globalTargetIntensity=intensity;
+}
+
+function resizeGlobalCanvases(){
+  globalSkyCanvas.width=window.innerWidth;globalSkyCanvas.height=window.innerHeight;
+  globalRainCanvas.width=window.innerWidth;globalRainCanvas.height=window.innerHeight;
+}
+window.addEventListener('resize',resizeGlobalCanvases);resizeGlobalCanvases();
+
+function initGlobalAtmosphere(){
+  globalClouds=[];
+  for(let i=0;i<5;i++){
+    const scale=0.6+Math.random()*0.7;
+    globalClouds.push({x:Math.random()*window.innerWidth,y:30+Math.random()*window.innerHeight*0.3,speed:0.2+Math.random()*0.3,alpha:0.3+Math.random()*0.25,puffs:[{ox:0,oy:0,r:40*scale},{ox:-35*scale,oy:8*scale,r:30*scale},{ox:38*scale,oy:7*scale,r:32*scale},{ox:-16*scale,oy:-14*scale,r:28*scale},{ox:18*scale,oy:-12*scale,r:25*scale}]});
+  }
+  globalRainDrops=[];
+  for(let i=0;i<80;i++){
+    const z=Math.random();
+    globalRainDrops.push({x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight,z,len:10+z*15,vy:6+z*8,vx:-0.5-z*0.4,alpha:0.1+z*0.28});
+  }
+}
+initGlobalAtmosphere();
+
+function animateGlobal(){
+  globalRainIntensity+=(globalTargetIntensity-globalRainIntensity)*0.04;
+  const sunny=globalAtmosphereMode==='sunny'?1:Math.max(0,1-globalRainIntensity*2);
+
+  globalSkyCtx.clearRect(0,0,globalSkyCanvas.width,globalSkyCanvas.height);
+  if(sunny>0.05){
+    const sg=globalSkyCtx.createRadialGradient(globalSkyCanvas.width*0.85,80,0,globalSkyCanvas.width*0.85,80,350);
+    sg.addColorStop(0,'rgba(255,245,200,'+0.12*sunny+')');sg.addColorStop(0.5,'rgba(255,220,100,'+0.05*sunny+')');sg.addColorStop(1,'rgba(255,255,255,0)');
+    globalSkyCtx.fillStyle=sg;globalSkyCtx.fillRect(0,0,globalSkyCanvas.width,globalSkyCanvas.height);
+  }
+  for(const c of globalClouds){
+    c.x+=c.speed;if(c.x-200>globalSkyCanvas.width)c.x=-200;
+    for(const p of c.puffs){
+      const g=globalSkyCtx.createRadialGradient(c.x+p.ox,c.y+p.oy-p.r*.2,p.r*.05,c.x+p.ox,c.y+p.oy,p.r);
+      const br=Math.round(40+150*sunny),bg2=Math.round(60+130*sunny),bb=Math.round(80+100*sunny);
+      const al=c.alpha*(0.1+0.3*sunny)*(0.2+globalRainIntensity*0.4);
+      g.addColorStop(0,'rgba('+br+','+bg2+','+bb+','+al+')');g.addColorStop(0.6,'rgba('+br+','+bg2+','+bb+','+(al*.3)+')');g.addColorStop(1,'rgba('+br+','+bg2+','+bb+',0)');
+      globalSkyCtx.fillStyle=g;globalSkyCtx.beginPath();globalSkyCtx.arc(c.x+p.ox,c.y+p.oy,p.r,0,Math.PI*2);globalSkyCtx.fill();
+    }
+  }
+
+  globalRainCtx.clearRect(0,0,globalRainCanvas.width,globalRainCanvas.height);
+  if(globalRainIntensity>0.04){
+    globalRainCtx.lineCap='round';
+    for(const d of globalRainDrops){
+      d.x+=d.vx;d.y+=d.vy*(0.6+globalRainIntensity*0.45);
+      if(d.y>globalRainCanvas.height+20){d.y=-15;d.x=Math.random()*globalRainCanvas.width;}
+      if(d.x<-5)d.x=globalRainCanvas.width;
+      const eff=d.alpha*globalRainIntensity;
+      const g=globalRainCtx.createLinearGradient(d.x,d.y-d.len,d.x,d.y);
+      g.addColorStop(0,'rgba(180,220,255,0)');g.addColorStop(1,'rgba(180,220,255,'+eff+')');
+      globalRainCtx.strokeStyle=g;globalRainCtx.lineWidth=d.z>0.6?1.3:0.8;
+      globalRainCtx.beginPath();globalRainCtx.moveTo(d.x,d.y-d.len);globalRainCtx.lineTo(d.x,d.y);globalRainCtx.stroke();
+    }
+  }
+  requestAnimationFrame(animateGlobal);
+}
+animateGlobal();
+
+/* ── Neon chart factory ── */
 function makeChart(id,labels,datasets,yLabel,dual){
-  const ctx=document.getElementById(id).getContext('2d');
-  const sc={x:{type:'time',time:{tooltipFormat:'dd/MM HH:mm',displayFormats:{hour:'HH:mm',day:'dd/MM'}},ticks:{color:'#6a8fa0',maxTicksLimit:6,maxRotation:0,font:{size:10}},grid:{color:'#1e3a4f'}},y:{ticks:{color:'#6a8fa0',font:{size:10}},grid:{color:'#1e3a4f'},title:{display:!!yLabel,text:yLabel,color:'#6a8fa0',font:{size:10}}}};
+  const el=document.getElementById(id);if(!el)return null;
+  const ctx=el.getContext('2d');
+  const gridColor='rgba(0,229,176,0.06)';const tickColor='#4a7080';
+  const sc={
+    x:{type:'time',time:{tooltipFormat:'dd/MM HH:mm',displayFormats:{hour:'HH:mm',day:'dd/MM'}},ticks:{color:tickColor,maxTicksLimit:6,maxRotation:0,font:{size:10}},grid:{color:gridColor}},
+    y:{ticks:{color:tickColor,font:{size:10}},grid:{color:gridColor},title:{display:!!yLabel,text:yLabel,color:tickColor,font:{size:10}}}
+  };
   if(dual)sc.y1={position:'right',ticks:{color:'#4db8a0',font:{size:10}},grid:{drawOnChartArea:false}};
-  return new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:true,aspectRatio:2.6,interaction:{intersect:false,mode:'index'},plugins:{legend:{display:!!dual,labels:{color:'#6a8fa0',font:{size:10},boxWidth:10}},tooltip:{backgroundColor:'#1a3040',borderColor:'#1e3a4f',borderWidth:1,titleColor:'#e8f4f0',bodyColor:'#6a8fa0',padding:8}},scales:sc}});
+  return new Chart(ctx,{type:'line',data:{labels,datasets},options:{
+    responsive:true,maintainAspectRatio:true,aspectRatio:2.8,
+    interaction:{intersect:false,mode:'index'},
+    plugins:{
+      legend:{display:!!dual,labels:{color:tickColor,font:{size:10},boxWidth:10}},
+      tooltip:{backgroundColor:'rgba(10,22,34,0.95)',borderColor:gridColor,borderWidth:1,titleColor:'#e0f4ff',bodyColor:tickColor,padding:8}
+    },
+    scales:sc
+  }});
 }
 
-// ---------------- UTILITÁRIOS ----------------
-function fmt(v){const n=parseFloat(v);return isNaN(n)?'-':n.toFixed(1);}
+/* ── Utility functions ── */
+function fmt(v){const n=filterVal(v);return isNaN(n)?'-':n.toFixed(1);}
 function fmt0(v){const n=parseFloat(v);return isNaN(n)?'-':Math.round(n);}
 function fmt1(v){const n=parseFloat(v);return isNaN(n)?'-':n.toFixed(1);}
 function formatarPeriodo(nome){const p=String(nome).split('-');if(p.length<2)return esc(nome);return['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][parseInt(p[1],10)-1]+' '+p[0];}
-// O backend envia resistência do sensor de gás em ohms, não IAQ.
-// Sem BSEC não existe conversão oficial 1:1. Aqui usamos um IAQ relativo 0–500,
-// calibrado pelo histórico recente da própria estação: resistência maior = ar melhor.
-function calcularBaselineGas(valores){
-  if(!valores||!valores.length)return NaN;
-  const s=[...valores].filter(v=>isFinite(v)&&v>0).sort((a,b)=>a-b);
-  if(!s.length)return NaN;
-  // Percentil 90 funciona como referência de "ar limpo" sem ser dominado por um pico isolado.
-  const pos=(s.length-1)*.90,lo=Math.floor(pos),hi=Math.ceil(pos);
-  return lo===hi?s[lo]:s[lo]+(s[hi]-s[lo])*(pos-lo);
-}
-function gasResistanceToIAQ(gasOhm,baselineOhm){
-  const g=parseFloat(gasOhm),b=parseFloat(baselineOhm);
-  if(!isFinite(g)||g<=0||!isFinite(b)||b<=0)return NaN;
-  const r=Math.max(.03,Math.min(1.20,g/b));
-  // Interpolação por faixas: razão de resistência em relação ao baseline limpo -> IAQ relativo.
-  const pts=[[1.20,0],[1.00,25],[.80,50],[.60,100],[.40,150],[.25,200],[.12,300],[.05,400],[.03,500]];
-  for(let i=0;i<pts.length-1;i++){
-    const [r1,q1]=pts[i],[r2,q2]=pts[i+1];
-    if(r<=r1&&r>=r2){const t=(r1-r)/(r1-r2);return Math.round(q1+(q2-q1)*t);}
-  }
-  return r>=1.20?0:500;
-}
+function calcularBaselineGas(valores){if(!valores||!valores.length)return NaN;const s=[...valores].filter(v=>isFinite(v)&&v>0).sort((a,b)=>a-b);if(!s.length)return NaN;const pos=(s.length-1)*.9,lo=Math.floor(pos),hi=Math.ceil(pos);return lo===hi?s[lo]:s[lo]+(s[hi]-s[lo])*(pos-lo);}
+function gasResistanceToIAQ(gasOhm,baselineOhm){const g=parseFloat(gasOhm),b=parseFloat(baselineOhm);if(!isFinite(g)||g<=0||!isFinite(b)||b<=0)return NaN;const r=Math.max(.03,Math.min(1.2,g/b));const pts=[[1.2,0],[1,25],[.8,50],[.6,100],[.4,150],[.25,200],[.12,300],[.05,400],[.03,500]];for(let i=0;i<pts.length-1;i++){const[r1,q1]=pts[i],[r2,q2]=pts[i+1];if(r<=r1&&r>=r2){const t=(r1-r)/(r1-r2);return Math.round(q1+(q2-q1)*t);}}return r>=1.2?0:500;}
 function fmtGas(v){const n=parseFloat(v);if(!isFinite(n))return'—';return n>=1000?(n/1000).toFixed(2)+' kΩ':Math.round(n)+' Ω';}
 function iaqLabel(v){if(!isFinite(v))return'Sem dados';if(v<=50)return'Bom';if(v<=100)return'Médio';if(v<=150)return'Pouco saudável';if(v<=200)return'Ruim';if(v<=300)return'Muito ruim';return'Péssimo';}
-function iaqColor(v){if(!isFinite(v))return'#6a8fa0';if(v<=50)return'#00d4a0';if(v<=100)return'#b7d653';if(v<=150)return'#f0e060';if(v<=200)return'#f0a500';if(v<=300)return'#e05c5c';return'#cc0000';}
+function iaqColor(v){if(!isFinite(v))return'#5a8099';if(v<=50)return'#00e5b0';if(v<=100)return'#b7d653';if(v<=150)return'#f0e060';if(v<=200)return'#f0a500';if(v<=300)return'#e05c5c';return'#cc0000';}
 function uvLabel(v){if(v<=2)return'Baixo';if(v<=5)return'Moderado';if(v<=7)return'Alto';if(v<=10)return'Muito Alto';return'Extremo';}
 function mostrarLoading(){document.getElementById('app-body').innerHTML='<div class="state-msg"><div class="spinner"></div><p>Carregando dados…</p></div>';}
 function mostrarErro(msg){document.getElementById('app-body').innerHTML='<div class="state-msg"><div class="icon">⚠️</div><p>'+msg+'</p></div>';}
 function mostrarVazio(msg){document.getElementById('app-body').innerHTML='<div class="state-msg"><div class="icon">📭</div><p>'+msg+'</p></div>';}
-function destroyCharts(){chartInstances.forEach(c=>c.destroy());chartInstances=[];}
+function destroyCharts(){chartInstances.forEach(c=>{if(c)c.destroy();});chartInstances=[];}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function escAttr(s){return esc(s);}
 function jsStr(s){return String(s??'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r?\n/g,' ');}
 
 registrarServiceWorker();
 init().finally(()=>iniciarMonitorNotificacoes());
-
 </script>
 </body>
 </html>
