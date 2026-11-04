@@ -87,16 +87,24 @@ select:focus{outline:none;border-color:var(--accent);}
 }
 .btn-refresh:active{opacity:.8;}
 
-/* ── ÚLTIMA LEITURA ── */
+/* ── ÚLTIMA LEITURA & CACHE BADGE ── */
 .ultima-leitura{
   margin:0 16px 6px;padding:8px 12px;
   background:var(--card);border:1px solid var(--border);border-radius:10px;
-  font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;
+  font-size:11px;color:var(--muted);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
 }
+.ul-left{display:flex;align-items:center;gap:6px;min-width:0;}
 .ultima-leitura .ul-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;animation:pulse-dot 2s ease infinite;}
 @keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:.4;}}
 .ultima-leitura.stale .ul-dot{background:#f0a500;animation:none;}
 .ultima-leitura.offline .ul-dot{background:#e05c5c;animation:none;}
+.cache-sync-pill{
+  font-size:10px;font-weight:600;padding:2px 8px;border-radius:999px;
+  background:rgba(0,229,176,0.1);color:var(--accent);border:1px solid rgba(0,229,176,0.25);
+  display:inline-flex;align-items:center;gap:4px;white-space:nowrap;
+}
+.cache-sync-pill.syncing{color:var(--accent2);background:rgba(0,200,240,0.1);border-color:rgba(0,200,240,0.28);}
+.cache-sync-pill.warn{color:#f0a500;background:rgba(240,165,0,0.1);border-color:rgba(240,165,0,0.28);}
 
 /* ── SUMMARY CARDS ── */
 .summary{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:8px 16px 4px;}
@@ -128,7 +136,7 @@ select:focus{outline:none;border-color:var(--accent);}
 .section-label::after{content:'';flex:1;height:1px;background:linear-gradient(to right,var(--border),transparent);}
 
 /* ══════════════════════════════════════════════════
-   CALENDÁRIO PLUVIOMÉTRICO — INTEGRADO NA TELA PRINCIPAL
+   CALENDÁRIO PLUVIOMÉTRICO — JANELA ROLANTE DE 35 DIAS
    ══════════════════════════════════════════════════ */
 .calendar-wrapper{padding:0 16px 4px;position:relative;}
 
@@ -168,13 +176,13 @@ select:focus{outline:none;border-color:var(--accent);}
 /* Calendar top bar */
 .cal-topbar{
   display:flex;align-items:center;justify-content:space-between;
-  flex-wrap:wrap;gap:10px;margin-bottom:16px;
+  flex-wrap:wrap;gap:10px;margin-bottom:14px;
 }
 .cal-month-nav{
-  display:flex;align-items:center;gap:10px;
-  background:rgba(10,20,32,0.6);backdrop-filter:blur(16px);
-  padding:5px 10px;border-radius:50px;
-  border:1px solid rgba(255,255,255,0.1);
+  display:flex;align-items:center;gap:8px;
+  background:rgba(10,20,32,0.65);backdrop-filter:blur(16px);
+  padding:5px 8px;border-radius:50px;
+  border:1px solid rgba(255,255,255,0.12);
 }
 .cal-nav-btn{
   width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,0.12);
@@ -182,8 +190,17 @@ select:focus{outline:none;border-color:var(--accent);}
   display:flex;align-items:center;justify-content:center;font-size:12px;
   transition:all .2s;
 }
-.cal-nav-btn:hover{background:rgba(255,255,255,0.18);transform:scale(1.08);}
-.cal-month-label{font-size:.95rem;font-weight:700;color:#fff;min-width:140px;text-align:center;}
+.cal-nav-btn:hover:not(:disabled){background:rgba(255,255,255,0.18);transform:scale(1.08);}
+.cal-nav-btn:disabled{opacity:.35;cursor:not-allowed;}
+.cal-today-btn{
+  border-radius:20px;border:1px solid rgba(0,229,176,0.45);
+  background:rgba(0,229,176,0.14);color:var(--accent);cursor:pointer;
+  padding:5px 11px;font-size:11px;font-weight:700;letter-spacing:.3px;
+  transition:all .2s;white-space:nowrap;
+}
+.cal-today-btn:hover{background:rgba(0,229,176,0.28);transform:translateY(-1px);}
+.cal-today-btn.is-centered{opacity:.55;border-color:rgba(255,255,255,0.15);color:#b8d4e3;background:rgba(255,255,255,0.05);}
+.cal-month-label{font-size:.88rem;font-weight:700;color:#fff;min-width:155px;text-align:center;padding:0 4px;}
 
 /* Gauge type selector */
 .gauge-type-wrap{display:flex;align-items:center;gap:8px;}
@@ -196,6 +213,15 @@ select:focus{outline:none;border-color:var(--accent);}
   background-repeat:no-repeat;background-position:right 8px center;
 }
 .gauge-type-select:focus{outline:none;border-color:var(--accent);}
+
+/* Rolling window subtitle banner */
+.cal-rolling-hint{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  font-size:11px;color:rgba(200,225,245,0.75);
+  margin-bottom:10px;padding:6px 12px;border-radius:10px;
+  background:rgba(8,18,30,0.45);border:1px solid rgba(255,255,255,0.07);
+}
+.cal-rolling-hint strong{color:var(--accent);}
 
 /* Calendar grid layout */
 .cal-layout{
@@ -215,18 +241,27 @@ select:focus{outline:none;border-color:var(--accent);}
   text-transform:uppercase;color:rgba(200,220,240,0.5);
 }
 
-/* Days grid */
+/* Days grid (5 weeks = 35 days) */
 .cal-days-grid{
   display:grid;grid-template-columns:repeat(7,1fr);
-  grid-auto-rows:clamp(48px,8vw,70px);
+  grid-auto-rows:clamp(50px,8.2vw,72px);
   gap:5px;align-items:center;justify-items:center;
 }
 .cal-day-slot{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
 
+/* Highlight row 3 (middle week containing Today) */
+.cal-day-slot.slot-current-week::before{
+  content:'';position:absolute;inset:2px -3px;
+  background:rgba(0,229,176,0.04);
+  border-top:1px dashed rgba(0,229,176,0.16);
+  border-bottom:1px dashed rgba(0,229,176,0.16);
+  pointer-events:none;z-index:0;
+}
+
 /* Day tile — liquid style */
 .cal-day-tile{
   position:relative;
-  width:var(--size-pct,74%);height:var(--size-pct,74%);
+  width:var(--size-pct,76%);height:var(--size-pct,76%);
   border-radius:var(--tile-radius,13px);
   background:var(--tile-bg,rgba(14,30,46,0.6));
   border:1px solid var(--tile-border,rgba(255,255,255,0.08));
@@ -238,7 +273,7 @@ select:focus{outline:none;border-color:var(--accent);}
     width .5s cubic-bezier(.22,1,.36,1),
     height .5s cubic-bezier(.22,1,.36,1),
     transform .35s cubic-bezier(.22,1,.36,1),
-    background .4s ease,border-color .3s ease,box-shadow .3s ease;
+    background .4s ease,border-color .3s ease,box-shadow .3s ease,opacity .3s ease;
   will-change:transform,width,height;
 }
 .cal-liquid-fill{
@@ -262,12 +297,49 @@ select:focus{outline:none;border-color:var(--accent);}
     radial-gradient(circle at 58% 25%,rgba(255,255,255,0.6) 1px,transparent 2px);
   opacity:var(--droplet-opacity,0);pointer-events:none;z-index:2;
 }
+.cal-day-month-tag{
+  position:absolute;top:3px;left:0;right:0;text-align:center;
+  font-size:.48rem;font-weight:800;letter-spacing:.4px;text-transform:uppercase;
+  color:rgba(255,230,140,0.95);z-index:4;pointer-events:none;line-height:1;
+  text-shadow:0 1px 3px rgba(0,0,0,0.85);
+}
+.cal-today-pill{
+  position:absolute;top:2px;right:3px;
+  font-size:.45rem;font-weight:900;letter-spacing:.4px;text-transform:uppercase;
+  padding:1px 4px;border-radius:4px;
+  background:var(--accent);color:#04121c;z-index:4;pointer-events:none;
+  box-shadow:0 0 8px rgba(0,229,176,0.7);
+}
 .cal-day-num{position:relative;z-index:3;font-size:var(--num-size,.8rem);font-weight:800;color:#fff;line-height:1;text-shadow:0 1px 5px rgba(0,0,0,.7);}
-.cal-day-mm{position:relative;z-index:3;font-size:.58rem;font-weight:700;color:#a8e8d8;margin-top:1px;letter-spacing:-.1px;opacity:var(--mm-opacity,0);text-shadow:0 1px 3px rgba(0,0,0,.8);}
+.cal-day-mm{position:relative;z-index:3;font-size:.56rem;font-weight:700;color:#a8e8d8;margin-top:1px;letter-spacing:-.1px;opacity:var(--mm-opacity,0);text-shadow:0 1px 3px rgba(0,0,0,.8);}
+
+/* Current Day ("HOJE") special highlight ring */
+.cal-day-tile.cal-is-today{
+  border:2px solid var(--accent)!important;
+  box-shadow:0 0 0 2px rgba(0,229,176,0.22),0 8px 20px rgba(0,229,176,0.35)!important;
+}
+
+/* Selected Day */
 .cal-day-tile.cal-selected{
   border-color:#fff!important;
   box-shadow:0 10px 24px rgba(0,0,0,.55),0 0 20px rgba(0,229,176,.6),inset 0 1px 2px rgba(255,255,255,.8)!important;
   z-index:10;
+}
+
+/* Future Day (Non-clickable, translucent, dashed border) */
+.cal-day-tile.cal-future{
+  width:68%!important;height:68%!important;
+  background:rgba(10,20,32,0.22)!important;
+  border:1px dashed rgba(140,180,210,0.18)!important;
+  box-shadow:none!important;
+  opacity:0.38;
+  cursor:not-allowed!important;
+  pointer-events:none!important;
+}
+.cal-day-tile.cal-future::before{display:none;}
+.cal-day-tile.cal-future .cal-day-num{color:rgba(190,215,235,0.55);font-weight:600;text-shadow:none;}
+.cal-day-tile.cal-future .cal-day-mm{
+  opacity:0.75!important;color:rgba(160,195,220,0.5);font-size:.46rem;font-weight:600;
 }
 
 /* BAR STYLE gauge (classic) */
@@ -293,15 +365,16 @@ select:focus{outline:none;border-color:var(--accent);}
 
 /* Legend */
 .cal-legend{
-  display:flex;align-items:center;gap:10px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
   margin-top:12px;padding-top:10px;
   border-top:1px solid rgba(255,255,255,0.08);
-  font-size:.7rem;color:rgba(200,220,240,.7);
+  font-size:.68rem;color:rgba(200,220,240,.7);
   flex-wrap:wrap;
 }
 .cal-legend-items{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .cal-legend-item{display:flex;align-items:center;gap:4px;}
 .cal-legend-swatch{display:inline-block;border-radius:4px;border:1px solid rgba(255,255,255,.25);}
+.cal-legend-swatch.future-swatch{border:1px dashed rgba(180,210,235,0.45);background:rgba(14,30,46,0.2);}
 
 /* Inspector panel */
 .cal-inspector{
@@ -321,9 +394,9 @@ select:focus{outline:none;border-color:var(--accent);}
   box-shadow:0 0 10px rgba(0,229,176,.6);z-index:2;
 }
 .cal-insp-content{position:relative;z-index:3;display:flex;flex-direction:column;gap:14px;}
-.cal-insp-header{display:flex;align-items:center;justify-content:space-between;}
+.cal-insp-header{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;}
 .cal-insp-date{
-  font-size:.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  font-size:.68rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
   padding:5px 10px;border-radius:50px;
   background:rgba(8,16,28,.6);border:1px solid rgba(255,255,255,.12);color:var(--accent2);
 }
@@ -352,10 +425,11 @@ select:focus{outline:none;border-color:var(--accent);}
 .cal-tele-label{font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:rgba(0,200,230,.7);}
 .cal-tele-val{font-size:.95rem;font-weight:800;color:#fff;margin-top:2px;}
 .cal-month-strip{
-  display:flex;align-items:center;justify-content:space-between;
+  display:flex;flex-direction:column;gap:5px;
   padding-top:10px;border-top:1px solid rgba(255,255,255,.1);
-  font-size:.74rem;color:rgba(220,240,255,.82);
+  font-size:.72rem;color:rgba(220,240,255,.82);
 }
+.cal-strip-row{display:flex;align-items:center;justify-content:space-between;}
 .cal-month-strip strong{color:var(--accent2);font-weight:800;}
 
 /* ── CHARTS ── */
@@ -409,7 +483,7 @@ canvas.real-chart{display:block;width:100%!important;max-height:160px;}
   background:linear-gradient(145deg,rgba(14,28,44,0.9),rgba(10,18,32,0.95));
   border:1px solid var(--border);border-radius:var(--radius);padding:14px;min-height:155px;
 }
-.forecast-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.forecast-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
 .forecast-kicker{font-size:9px;color:var(--muted);letter-spacing:.7px;font-weight:700;margin-bottom:4px;}
 .forecast-title{font-size:16px;font-weight:700;}
 .forecast-icon{font-size:30px;line-height:1;}
@@ -521,10 +595,12 @@ canvas.real-chart{display:block;width:100%!important;max-height:160px;}
   .notify-controls{grid-template-columns:1fr;}
   .btn-notify{width:100%;}
   .gauge-type-wrap{flex-wrap:wrap;}
-  .cal-topbar{flex-direction:column;align-items:flex-start;}
+  .cal-topbar{flex-direction:column;align-items:stretch;}
+  .cal-month-nav{justify-content:space-between;}
+  .cal-rolling-hint{flex-direction:column;align-items:flex-start;gap:3px;}
 }
 @media(max-width:460px){
-  .cal-days-grid{grid-auto-rows:clamp(40px,11vw,56px);gap:3px;}
+  .cal-days-grid{grid-auto-rows:clamp(44px,11.5vw,58px);gap:4px;}
   .cal-inner{padding:14px 12px 10px;}
   .cal-inspector{padding:14px;}
   .cal-hero-val{font-size:2.5rem;}
@@ -569,10 +645,13 @@ canvas.real-chart{display:block;width:100%!important;max-height:160px;}
     <label>Período</label>
     <select id="sel-planilha" onchange="carregarDados()"><option value="">—</option></select>
   </div>
-  <button class="btn-refresh" id="btn-refresh" onclick="carregarDados()">↻</button>
+  <button class="btn-refresh" id="btn-refresh" onclick="carregarDados({forcarRede:true})" title="Sincronizar agora">↻</button>
 </div>
 <div class="ultima-leitura" id="ultima-leitura" style="display:none">
-  <span class="ul-dot"></span><span id="ul-texto">—</span>
+  <div class="ul-left">
+    <span class="ul-dot"></span><span id="ul-texto">—</span>
+  </div>
+  <span class="cache-sync-pill" id="ul-sync-pill" style="display:none">⚡ Cache local</span>
 </div>
 
 <!-- DATA SECTION -->
@@ -596,7 +675,7 @@ canvas.real-chart{display:block;width:100%!important;max-height:160px;}
   </div>
 </div>
 
-<div class="footer">OORT TECNOLOGIAS · Dados atualizados a cada 10 min</div>
+<div class="footer">OORT TECNOLOGIAS · Dados em cache local + atualização a cada 10 min</div>
 
 </div><!-- .app-content -->
 
@@ -605,18 +684,40 @@ canvas.real-chart{display:block;width:100%!important;max-height:160px;}
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <script>
 /* ============================================================
-   OORT AGRO — Versão integrada com Calendário Pluviométrico
+   OORT AGRO — Janela Rolante 35 Dias + Cache Instantâneo (SWR)
    ============================================================ */
 
 const API='https://script.google.com/macros/s/AKfycbztgm_QeJl2nlnT6sK7XG3PfLxI-5XPhC17Ol5hV2bDKTyjdaKN6tbSGi4Cudp3hB7o8w/exec';
 const WEATHER_API='https://api.open-meteo.com/v1/forecast';
 const DB_NAME='oort-agro-cache-v2',DB_VERSION=1,STORE='cache';
+const LS_LAST_STATION='oort-agro-last-station-v2';
+const LS_LAST_SHEETS='oort-agro-last-sheets-v2';
 
-let dadosAtivos=[],periodoAtivo='hoje',abaAtiva='dados',chartInstances=[],estacaoAtual='';
+let dadosAtivos=[];          // Dados da planilha selecionada
+let dadosCombinados=[];      // Dados mesclados (planilha anterior + atual) p/ calendário contínuo e filtro 7d
+let planilhasDaEstacao=[];   // Lista de planilhas da estação ativa
+let assinaturaRenderizada=''; // Assinatura leve para evitar re-render desnecessário
+let periodoAtivo='hoje',abaAtiva='dados',chartInstances=[],estacaoAtual='';
 let estacoesDisponiveis=[],mapaConfig=null,marcadorConfig=null,estacaoConfigAtual='';
-let dbPromise=null,ultimaPlanilhaPorEstacao={};
+let dbPromise=null;
+let ultimaPlanilhaPorEstacao=carregarMapaPlanilhasSalvo();
+let prefetchTimer=null;
+
 const NOTIFY_CFG_KEY='oort-agro-notify-v1',NOTIFY_EVERY_MS=3*60*60*1000,MONITOR_EVERY_MS=10*60*1000;
 let notifyCheckTimer=null,baroMonitorTimer=null,swRegistration=null;
+
+function carregarMapaPlanilhasSalvo(){
+  try{return JSON.parse(localStorage.getItem(LS_LAST_SHEETS)||'{}')||{};}catch(e){return {};}
+}
+function salvarPreferenciasLocais(est,plan){
+  try{
+    if(est)localStorage.setItem(LS_LAST_STATION,est);
+    if(est&&plan){
+      ultimaPlanilhaPorEstacao[est]=plan;
+      localStorage.setItem(LS_LAST_SHEETS,JSON.stringify(ultimaPlanilhaPorEstacao));
+    }
+  }catch(e){}
+}
 
 /* ── Sensor data filter ── */
 function filterTemp(v){const n=parseFloat(v);return(!isNaN(n)&&n>=-50&&n<=500)?n:NaN;}
@@ -647,6 +748,45 @@ async function fetchJSON(url,timeout=15000){
   finally{clearTimeout(timer);}
 }
 
+/* ── Assinatura leve para evitar re-render sem mudanças ── */
+function calcularAssinaturaDados(dados,dadosComb){
+  const a=dados&&dados.length?dados[dados.length-1]:null;
+  const b=dadosComb&&dadosComb.length?dadosComb[0]:null;
+  return [
+    estacaoAtual,
+    document.getElementById('sel-planilha')?.value||'',
+    periodoAtivo,
+    dados?dados.length:0,
+    dadosComb?dadosComb.length:0,
+    a?String(a.Date)+'|'+String(a.Pluvi)+'|'+String(a.TempAr):'',
+    b?String(b.Date):''
+  ].join('::');
+}
+
+/* ── Mesclagem inteligente com o mês anterior ── */
+function encontrarPlanilhaAnterior(nomePlanilha,lista){
+  if(!nomePlanilha||!Array.isArray(lista)||lista.length<2)return null;
+  const nomes=lista.map(p=>p.nome).filter(Boolean).sort();
+  const idx=nomes.indexOf(nomePlanilha);
+  if(idx>0)return nomes[idx-1];
+  // Caso a lista venha em ordem decrescente ou fora de ordem, tenta calcular YYYY-MM anterior
+  const m=String(nomePlanilha).match(/^(\d{4})-(\d{2})/);
+  if(m){
+    let y=parseInt(m[1],10),mo=parseInt(m[2],10)-1;
+    if(mo===0){mo=12;y--;}
+    const candidato=`${y}-${String(mo).padStart(2,'0')}`;
+    if(lista.some(p=>p.nome===candidato))return candidato;
+  }
+  return null;
+}
+
+function mesclarDadosCronologicos(arrAnt,arrAtual){
+  const mapa=new Map();
+  if(Array.isArray(arrAnt)){for(const item of arrAnt){if(item&&item.Date)mapa.set(String(item.Date),item);}}
+  if(Array.isArray(arrAtual)){for(const item of arrAtual){if(item&&item.Date)mapa.set(String(item.Date),item);}}
+  return Array.from(mapa.values()).sort((a,b)=>String(a.Date).localeCompare(String(b.Date)));
+}
+
 /* ── Navigation ── */
 function setAba(aba,el){
   abaAtiva=aba;
@@ -670,78 +810,234 @@ function setPeriodo(p,el){
   periodoAtivo=p;
   document.querySelectorAll('.period-tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  if(dadosAtivos.length){const f=filtrar(dadosAtivos);destroyCharts();if(!f.length)mostrarVazio('Sem dados. Tente outro filtro.');else renderizar(f);}
+  if(dadosAtivos.length){
+    const f=filtrar(dadosAtivos,dadosCombinados);
+    destroyCharts();
+    if(!f.length)mostrarVazio('Sem dados. Tente outro filtro.');
+    else renderizar(f,dadosCombinados);
+  }
 }
-function filtrar(dados){
-  if(!dados.length)return dados;
-  if(periodoAtivo==='hoje'){const d=String(dados[dados.length-1].Date).slice(0,10);return dados.filter(x=>String(x.Date).slice(0,10)===d);}
-  if(periodoAtivo==='7d'){const ult=new Date(dados[dados.length-1].Date);const lim=new Date(ult);lim.setDate(lim.getDate()-7);return dados.filter(x=>new Date(x.Date)>=lim);}
+function filtrar(dados,combinados){
+  const base=(periodoAtivo==='7d'&&combinados&&combinados.length)?combinados:dados;
+  if(!base.length)return base;
+  if(periodoAtivo==='hoje'){
+    const d=String(base[base.length-1].Date).slice(0,10);
+    return base.filter(x=>String(x.Date).slice(0,10)===d);
+  }
+  if(periodoAtivo==='7d'){
+    const ult=new Date(base[base.length-1].Date);
+    const lim=new Date(ult);lim.setDate(lim.getDate()-7);
+    return base.filter(x=>new Date(x.Date)>=lim);
+  }
   return dados;
 }
 
-/* ── Init / Stations ── */
+/* ── Init / Instant Cache-First Boot ── */
 async function init(){
   await abrirDB().catch(()=>null);
-  const cached=await cacheGet('estacoes');let abriuComCache=false;
-  if(cached&&Array.isArray(cached.value)&&cached.value.length){abriuComCache=true;aplicarEstacoes(cached.value);await onEstacaoChange();}
+  const estSalva=localStorage.getItem(LS_LAST_STATION)||'';
+  const cachedEstacoes=await cacheGet('estacoes');
+  let abriuComCache=false;
+
+  if(cachedEstacoes&&Array.isArray(cachedEstacoes.value)&&cachedEstacoes.value.length){
+    abriuComCache=true;
+    aplicarEstacoes(cachedEstacoes.value,estSalva);
+    await onEstacaoChange({instantaneo:true});
+  }
+
   try{
     const d=await fetchJSON(API+'?action=estacoes');
     if(!d.ok)throw new Error(d.erro||'Falha');
-    const atual=estacaoAtual;aplicarEstacoes(d.estacoes||[],atual);await cacheSet('estacoes',d.estacoes||[]);
-    if(!abriuComCache&&d.estacoes&&d.estacoes.length)await onEstacaoChange();
+    const atual=estacaoAtual||estSalva;
+    aplicarEstacoes(d.estacoes||[],atual);
+    await cacheSet('estacoes',d.estacoes||[]);
+    if(!abriuComCache&&d.estacoes&&d.estacoes.length){
+      await onEstacaoChange({instantaneo:false});
+    }
     if(abaAtiva==='config')renderConfigLista();
-  }catch(err){if(!abriuComCache)mostrarErro('Não foi possível conectar.<br><small>'+esc(err.message)+'</small>');}
+  }catch(err){
+    if(!abriuComCache)mostrarErro('Não foi possível conectar.<br><small>'+esc(err.message)+'</small>');
+  }
 }
+
 function aplicarEstacoes(lista,preservar=''){
   estacoesDisponiveis=lista||[];
-  const sel=document.getElementById('sel-estacao');const alvo=preservar||sel.value||estacaoAtual;
+  const sel=document.getElementById('sel-estacao');
+  const alvo=preservar||sel.value||estacaoAtual;
   sel.innerHTML=estacoesDisponiveis.map(e=>'<option value="'+escAttr(e.nome)+'">'+esc(e.codigo||e.nome)+'</option>').join('');
   if(alvo&&estacoesDisponiveis.some(e=>e.nome===alvo))sel.value=alvo;
   estacaoAtual=sel.value||'';
+  if(estacaoAtual)salvarPreferenciasLocais(estacaoAtual,null);
 }
-async function onEstacaoChange(){
-  estacaoAtual=document.getElementById('sel-estacao').value;if(!estacaoAtual)return;
-  setStatusLeitura('Atualizando última leitura…','');atualizarUltimaLeitura(estacaoAtual);
-  await carregarPlanilhas(estacaoAtual);
+
+async function onEstacaoChange(opts={}){
+  estacaoAtual=document.getElementById('sel-estacao').value;
+  if(!estacaoAtual)return;
+  salvarPreferenciasLocais(estacaoAtual,null);
+  assinaturaRenderizada='';
+  setStatusLeitura('Verificando leituras…','');
+  atualizarUltimaLeitura(estacaoAtual);
+  await carregarPlanilhas(estacaoAtual,opts);
 }
-async function carregarPlanilhas(est){
-  const sel=document.getElementById('sel-planilha');const cache=await cacheGet('planilhas:'+est);let mostrouCache=false;
-  if(cache&&Array.isArray(cache.value)&&cache.value.length){preencherPlanilhas(cache.value,ultimaPlanilhaPorEstacao[est]);mostrouCache=await carregarDados({somenteCache:true});}
-  else if(!dadosAtivos.length){document.getElementById('app-body').innerHTML='<div class="state-msg"><div class="spinner"></div><p>Carregando dados da estação…</p></div>';}
+
+async function carregarPlanilhas(est,opts={}){
+  const sel=document.getElementById('sel-planilha');
+  const cache=await cacheGet('planilhas:'+est);
+  let mostrouCache=false;
+
+  if(cache&&Array.isArray(cache.value)&&cache.value.length){
+    planilhasDaEstacao=cache.value;
+    preencherPlanilhas(cache.value,ultimaPlanilhaPorEstacao[est]);
+    mostrouCache=await carregarDados({somenteCache:true});
+  }else if(!dadosAtivos.length){
+    document.getElementById('app-body').innerHTML='<div class="state-msg"><div class="spinner"></div><p>Carregando dados da estação…</p></div>';
+  }
+
+  // Revalida lista de planilhas em segundo plano
   try{
+    setSyncBadge('⚡ Cache · sincronizando…','syncing');
     const d=await fetchJSON(API+'?action=planilhas&estacao='+encodeURIComponent(est));
+    if(est!==estacaoAtual)return;
     if(!d.ok)throw new Error(d.erro||'Erro');
-    const manter=sel.value||ultimaPlanilhaPorEstacao[est];preencherPlanilhas(d.planilhas||[],manter);await cacheSet('planilhas:'+est,d.planilhas||[]);
-    if(d.planilhas&&d.planilhas.length)await carregarDados({pularCache:mostrouCache,silencioso:mostrouCache});
-    else mostrarVazio('Nenhuma planilha encontrada.');
-  }catch(err){if(!mostrouCache)mostrarErro('Erro: '+esc(err.message));}
+    planilhasDaEstacao=d.planilhas||[];
+    const manter=sel.value||ultimaPlanilhaPorEstacao[est];
+    preencherPlanilhas(planilhasDaEstacao,manter);
+    await cacheSet('planilhas:'+est,planilhasDaEstacao);
+    if(planilhasDaEstacao.length){
+      await carregarDados({pularCache:mostrouCache,silencioso:mostrouCache});
+      agendarPrefetchPlanilhas(est,planilhasDaEstacao);
+    }else{
+      mostrarVazio('Nenhuma planilha encontrada.');
+    }
+  }catch(err){
+    if(!mostrouCache)mostrarErro('Erro: '+esc(err.message));
+    else setSyncBadge('⚡ Dados locais (offline)','warn');
+  }
 }
+
 function preencherPlanilhas(planilhas,manter=''){
   const sel=document.getElementById('sel-planilha');
   sel.innerHTML=(planilhas||[]).map(p=>'<option value="'+escAttr(p.nome)+'">'+formatarPeriodo(p.nome)+'</option>').join('');
   if(manter&&(planilhas||[]).some(p=>p.nome===manter))sel.value=manter;
-  if(sel.value)ultimaPlanilhaPorEstacao[estacaoAtual]=sel.value;
+  if(sel.value)salvarPreferenciasLocais(estacaoAtual,sel.value);
 }
 
-/* ── Data loading ── */
+/* ── Data loading + Previous Month Merge + Background Sync ── */
 async function carregarDados(opts={}){
-  const est=document.getElementById('sel-estacao').value;const plan=document.getElementById('sel-planilha').value;
+  const est=document.getElementById('sel-estacao').value;
+  const plan=document.getElementById('sel-planilha').value;
   if(!est||!plan)return false;
-  ultimaPlanilhaPorEstacao[est]=plan;const key='dados:'+est+':'+plan;let mostrouCache=false;
-  if(!opts.pularCache){const c=await cacheGet(key);if(c&&Array.isArray(c.value)&&c.value.length){dadosAtivos=c.value;const f=filtrar(dadosAtivos);destroyCharts();if(f.length)renderizar(f);else mostrarVazio('Sem dados neste intervalo no cache.');mostrouCache=true;setStatusLeitura('Atualizando última leitura…','');}}
+
+  salvarPreferenciasLocais(est,plan);
+  const keyAtual='dados:'+est+':'+plan;
+  const planAnt=encontrarPlanilhaAnterior(plan,planilhasDaEstacao);
+  const keyAnt=planAnt?('dados:'+est+':'+planAnt):null;
+  let mostrouCache=false;
+
+  // 1. Renderização instantânea via IndexedDB (Planilha atual + mês anterior)
+  if(!opts.pularCache&&!opts.forcarRede){
+    const [cAtual,cAnt]=await Promise.all([
+      cacheGet(keyAtual),
+      keyAnt?cacheGet(keyAnt):Promise.resolve(null)
+    ]);
+    if(cAtual&&Array.isArray(cAtual.value)&&cAtual.value.length){
+      dadosAtivos=cAtual.value;
+      const arrAnt=(cAnt&&Array.isArray(cAnt.value))?cAnt.value:[];
+      dadosCombinados=mesclarDadosCronologicos(arrAnt,dadosAtivos);
+      const novaAssinatura=calcularAssinaturaDados(dadosAtivos,dadosCombinados);
+      if(novaAssinatura!==assinaturaRenderizada){
+        assinaturaRenderizada=novaAssinatura;
+        const f=filtrar(dadosAtivos,dadosCombinados);
+        destroyCharts();
+        if(f.length)renderizar(f,dadosCombinados);
+        else mostrarVazio('Sem dados neste intervalo no cache.');
+      }
+      mostrouCache=true;
+      setSyncBadge('⚡ Cache instantâneo','');
+    }
+  }
+
   if(opts.somenteCache)return mostrouCache;
   if(!mostrouCache&&!opts.silencioso){mostrarLoading();destroyCharts();}
+
+  // 2. Busca dados novos na rede em segundo plano (atual + mês anterior se ainda não estiver em cache)
   try{
-    const d=await fetchJSON(API+'?action=dados&estacao='+encodeURIComponent(est)+'&planilha='+encodeURIComponent(plan),20000);
+    setSyncBadge(mostrouCache?'⚡ Sincronizando novos dados…':'Baixando dados…','syncing');
+
+    const promAtual=fetchJSON(API+'?action=dados&estacao='+encodeURIComponent(est)+'&planilha='+encodeURIComponent(plan),20000);
+    const promAnt=(async()=>{
+      if(!planAnt)return null;
+      const cachedAnt=await cacheGet(keyAnt);
+      if(cachedAnt&&Array.isArray(cachedAnt.value)&&cachedAnt.value.length)return cachedAnt.value;
+      try{
+        const dAnt=await fetchJSON(API+'?action=dados&estacao='+encodeURIComponent(est)+'&planilha='+encodeURIComponent(planAnt),20000);
+        if(dAnt&&dAnt.ok&&Array.isArray(dAnt.dados)&&dAnt.dados.length){
+          await cacheSet(keyAnt,dAnt.dados);
+          return dAnt.dados;
+        }
+      }catch(e){}
+      return null;
+    })();
+
+    const [d,arrAnt]=await Promise.all([promAtual,promAnt]);
+
     if(est!==document.getElementById('sel-estacao').value||plan!==document.getElementById('sel-planilha').value)return mostrouCache;
     if(!d.ok)throw new Error(d.erro||'Erro');
-    if(!d.dados||!d.dados.length){if(!mostrouCache)mostrarVazio('Sem dados para este período.');return mostrouCache;}
-    dadosAtivos=d.dados;await cacheSet(key,d.dados);const f=filtrar(dadosAtivos);destroyCharts();
-    if(!f.length)mostrarVazio('Sem dados para este intervalo. Tente "7 dias" ou "Mês".');else renderizar(f);return true;
-  }catch(err){if(!mostrouCache)mostrarErro('Erro: '+esc(err.message));else setStatusLeitura('Dados em cache · não foi possível atualizar agora','stale');return mostrouCache;}
+    if(!d.dados||!d.dados.length){
+      if(!mostrouCache)mostrarVazio('Sem dados para este período.');
+      setSyncBadge('✓ Atualizado','');
+      return mostrouCache;
+    }
+
+    dadosAtivos=d.dados;
+    await cacheSet(keyAtual,d.dados);
+    dadosCombinados=mesclarDadosCronologicos(arrAnt||[],dadosAtivos);
+
+    const novaAssinatura=calcularAssinaturaDados(dadosAtivos,dadosCombinados);
+    if(novaAssinatura!==assinaturaRenderizada||opts.forcarRede){
+      assinaturaRenderizada=novaAssinatura;
+      const f=filtrar(dadosAtivos,dadosCombinados);
+      destroyCharts();
+      if(!f.length)mostrarVazio('Sem dados para este intervalo. Tente "7 dias" ou "Mês".');
+      else renderizar(f,dadosCombinados);
+    }
+    setSyncBadge('✓ Sincronizado agora','');
+    return true;
+  }catch(err){
+    if(!mostrouCache){
+      mostrarErro('Erro: '+esc(err.message));
+      setSyncBadge('⚠️ Falha de rede','warn');
+    }else{
+      setStatusLeitura('Exibindo dados salvos no dispositivo','stale');
+      setSyncBadge('⚡ Modo Cache Offline','warn');
+    }
+    return mostrouCache;
+  }
 }
+
+/* ── Prefetch em background de todas as planilhas da estação ── */
+function agendarPrefetchPlanilhas(est,planilhas){
+  if(prefetchTimer)clearTimeout(prefetchTimer);
+  prefetchTimer=setTimeout(async()=>{
+    if(est!==estacaoAtual||!Array.isArray(planilhas))return;
+    // Baixa silenciosamente as últimas 4 planilhas para troca de mês instantânea
+    const alvos=planilhas.slice(0,4);
+    for(const p of alvos){
+      if(est!==estacaoAtual)break;
+      const k='dados:'+est+':'+p.nome;
+      const ex=await cacheGet(k);
+      if(ex&&Array.isArray(ex.value)&&ex.value.length)continue;
+      try{
+        const d=await fetchJSON(API+'?action=dados&estacao='+encodeURIComponent(est)+'&planilha='+encodeURIComponent(p.nome),20000);
+        if(d&&d.ok&&Array.isArray(d.dados)&&d.dados.length){
+          await cacheSet(k,d.dados);
+        }
+      }catch(e){}
+    }
+  },1200);
+}
+
 async function atualizarUltimaLeitura(estacao){
-  setStatusLeitura('Atualizando última leitura…','');
   try{
     const d=await fetchJSON(API+'?action=ultima_leitura&estacao='+encodeURIComponent(estacao),10000);
     if(estacao!==estacaoAtual)return;
@@ -752,13 +1048,21 @@ async function atualizarUltimaLeitura(estacao){
     if(diff>180){status='offline';label+=' ⚠️';}
     setStatusLeitura(label,status);
   }catch(e){
-    if(dadosAtivos.length){const last=dadosAtivos[dadosAtivos.length-1];setStatusLeitura('Última leitura em cache: '+String(last.Date||'—'),'stale');}
+    if(dadosAtivos.length){const last=dadosAtivos[dadosAtivos.length-1];setStatusLeitura('Última leitura no cache: '+String(last.Date||'—'),'stale');}
     else setStatusLeitura('Não foi possível verificar a última leitura','stale');
   }
 }
 function setStatusLeitura(text,status=''){
   const el=document.getElementById('ultima-leitura');const tx=document.getElementById('ul-texto');
   el.className='ultima-leitura '+status;if(abaAtiva==='dados')el.style.display='flex';tx.textContent=text;
+}
+function setSyncBadge(text,mode=''){
+  const pill=document.getElementById('ul-sync-pill');
+  if(!pill)return;
+  if(!text){pill.style.display='none';return;}
+  pill.style.display='inline-flex';
+  pill.className='cache-sync-pill'+(mode?' '+mode:'');
+  pill.textContent=text;
 }
 
 /* ── Reports ── */
@@ -944,10 +1248,14 @@ async function avaliarAlertaBarometrico(est,estado){const cfg=getNotifyConfig();
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){verificarResumoPeriodico().catch(()=>{});monitorarBarometroNotificacao().catch(()=>{});}});
 
 /* ═══════════════════════════════════════════════════════
-   RENDERIZAR DADOS — ORDEM: previsão > cards > calendário > gráficos
+   RENDERIZAR DADOS — ORDEM: cards > previsão > calendário > gráficos
    ═══════════════════════════════════════════════════════ */
-function renderizar(dados){
+let neonPluginRegistered=false;
+
+function renderizar(dados,todosCombinados){
   const body=document.getElementById('app-body');
+  const baseCalendario=(todosCombinados&&todosCombinados.length)?todosCombinados:dados;
+
   const datas=dados.map(d=>new Date(d.Date));
   const tempAr=dados.map(d=>filterTemp(d.TempAr));
   const umiAr=dados.map(d=>filterVal(d.UmiAr));
@@ -961,10 +1269,14 @@ function renderizar(dados){
   const umiSolo=dados.map(d=>filterVal(d.UmiSolo));
   const last=dados[dados.length-1];
 
-  // Rain by day
-  const pluviPorDia={};
-  dados.forEach(d=>{const dia=String(d.Date).slice(0,10);const v=parseFloat(d.Pluvi);if(!isNaN(v))pluviPorDia[dia]=v;});
-  const chuvaTotal=Object.values(pluviPorDia).reduce((a,b)=>a+b,0);
+  // Chuva por dia do período filtrado (para o card de resumo e gráfico inferior)
+  const pluviPorDiaFiltro={};
+  dados.forEach(d=>{const dia=String(d.Date).slice(0,10);const v=parseFloat(d.Pluvi);if(!isNaN(v))pluviPorDiaFiltro[dia]=v;});
+  const chuvaTotal=Object.values(pluviPorDiaFiltro).reduce((a,b)=>a+b,0);
+
+  // Chuva por dia combinada (mês anterior + atual) para o Calendário Pluviométrico Rolante
+  const pluviPorDiaCalendario={};
+  baseCalendario.forEach(d=>{const dia=String(d.Date).slice(0,10);const v=parseFloat(d.Pluvi);if(!isNaN(v))pluviPorDiaCalendario[dia]=v;});
 
   const tempOk=tempAr.filter(v=>isFinite(v));
   const umiOk=umiAr.filter(v=>isFinite(v));
@@ -972,24 +1284,18 @@ function renderizar(dados){
   const lastPress=filterPress(last.Press);
 
   body.innerHTML=
-  // 2. Summary cards (Temp, Humidity, Rain, Pressure)
     '<div class="summary">'+
       '<div class="summary-card"><div class="s-label">Temp. Ar</div><div class="s-value s-temp">'+(isFinite(lastTemp)?lastTemp.toFixed(1):'-')+'<span class="s-unit">°C</span></div><div class="s-range">↓'+(tempOk.length?Math.min(...tempOk).toFixed(1):'-')+' ↑'+(tempOk.length?Math.max(...tempOk).toFixed(1):'-')+' °C</div></div>'+
       '<div class="summary-card"><div class="s-label">Umidade Ar</div><div class="s-value s-umi">'+fmt(last.UmiAr)+'<span class="s-unit">%</span></div><div class="s-range">↓'+(umiOk.length?Math.min(...umiOk).toFixed(0):'-')+' ↑'+(umiOk.length?Math.max(...umiOk).toFixed(0):'-')+' %</div></div>'+
       '<div class="summary-card"><div class="s-label">Chuva Acum.</div><div class="s-value s-chuva">'+chuvaTotal.toFixed(1)+'<span class="s-unit">mm</span></div><div class="s-range">Período selecionado</div></div>'+
       '<div class="summary-card"><div class="s-label">Pressão</div><div class="s-value s-press">'+(isFinite(lastPress)?lastPress.toFixed(0):'-')+'<span class="s-unit">hPa</span></div><div class="s-range">Leitura atual</div></div>'+
     '</div>'+
-    // 1. Forecast cards
     '<div class="forecast-grid">'+
       '<div class="forecast-card" id="forecast-api"><div class="forecast-loading"><span class="mini-spinner"></span>Consultando previsão meteorológica…</div></div>'+
       '<div class="forecast-card" id="forecast-baro"></div>'+
     '</div>'+
-	// 3. Pluviometric calendar
     '<div class="section-label">Calendário Pluviométrico</div>'+
     '<div class="calendar-wrapper" id="cal-container"></div>'+
-    
-    
-    // 4. Charts
     '<div class="charts">'+
       '<div class="chart-section"><div class="section-label">Atmosfera</div>'+
         '<div class="chart-card"><div class="chart-title"><span class="chart-dot" style="background:#ff7e5f;box-shadow:0 0 8px rgba(255,126,95,0.6)"></span>Temperatura do Ar (°C)</div><canvas class="real-chart" id="c-temp"></canvas></div>'+
@@ -1028,21 +1334,23 @@ function renderizar(dados){
 
   /* Neon chart options */
   const baseOpts={tension:.4,pointRadius:0,borderWidth:2};
-  const neonPlugin={
-    id:'neonGlow',
-    beforeDraw(chart){
-      const ctx=chart.ctx;ctx.save();
-      chart.data.datasets.forEach((ds,i)=>{
-        const meta=chart.getDatasetMeta(i);
-        if(!meta.hidden&&ds.borderColor){
-          ctx.shadowColor=ds.borderColor;ctx.shadowBlur=10;
-          meta.data.forEach((pt,j)=>{if(j===0)return;const prev=meta.data[j-1];ctx.beginPath();ctx.moveTo(prev.x,prev.y);ctx.lineTo(pt.x,pt.y);ctx.strokeStyle=ds.borderColor;ctx.lineWidth=(ds.borderWidth||2)*0.5;ctx.stroke();});
-        }
-      });
-      ctx.restore();
-    }
-  };
-  Chart.register(neonPlugin);
+  if(!neonPluginRegistered){
+    neonPluginRegistered=true;
+    Chart.register({
+      id:'neonGlow',
+      beforeDraw(chart){
+        const ctx=chart.ctx;ctx.save();
+        chart.data.datasets.forEach((ds,i)=>{
+          const meta=chart.getDatasetMeta(i);
+          if(!meta.hidden&&ds.borderColor){
+            ctx.shadowColor=ds.borderColor;ctx.shadowBlur=10;
+            meta.data.forEach((pt,j)=>{if(j===0)return;const prev=meta.data[j-1];ctx.beginPath();ctx.moveTo(prev.x,prev.y);ctx.lineTo(pt.x,pt.y);ctx.strokeStyle=ds.borderColor;ctx.lineWidth=(ds.borderWidth||2)*0.5;ctx.stroke();});
+          }
+        });
+        ctx.restore();
+      }
+    });
+  }
 
   chartInstances.push(makeChart('c-temp',datas,[{label:'Temp Ar',data:tempAr.map((v,i)=>isFinite(v)?{x:datas[i],y:v}:null).filter(Boolean),borderColor:'#ff7e5f',...baseOpts}],'°C'));
   chartInstances.push(makeChart('c-umi', datas,[{label:'Umidade',data:umiAr.map((v,i)=>isFinite(v)?{x:datas[i],y:v}:null).filter(Boolean),borderColor:'#00c8f0',...baseOpts}],'%'));
@@ -1054,8 +1362,8 @@ function renderizar(dados){
     {label:'Umi Solo',data:umiSolo.map((v,i)=>isFinite(v)?{x:datas[i],y:v}:null).filter(Boolean),borderColor:'#4db8a0',yAxisID:'y1',...baseOpts}
   ],'',true));
 
-  /* Rain gauge — build both and show based on current selection */
-  renderRainGauge(dados,pluviPorDia);
+  /* Rain gauge */
+  renderRainGauge(dados,pluviPorDiaFiltro);
 
   /* Battery */
   const batPct=Math.min(100,Math.max(0,(parseFloat(last.Bat)/4.2)*100));
@@ -1067,25 +1375,24 @@ function renderizar(dados){
   const iaqB=document.getElementById('iaq-badge');iaqB.textContent=iaqLabel(iaqAtual);iaqB.style.cssText='background:'+iaqColor(iaqAtual)+'33;color:'+iaqColor(iaqAtual);
   const uvB=document.getElementById('uv-badge');uvB.textContent=uvLabel(parseFloat(last.UV));uvB.style.cssText='background:#ff910033;color:#ff9100';
 
-  renderPrevisaoBarometrica(dados);
+  renderPrevisaoBarometrica(baseCalendario);
   atualizarPrevisaoExterna();
 
-  /* Render pluviometric calendar with real data */
-  renderCalendario(pluviPorDia,dados);
+  /* Render Pluviometric Calendar with merged multi-month data */
+  renderCalendario(pluviPorDiaCalendario,baseCalendario);
 }
 
 /* ── Rain gauge rendering ── */
-let gaugeTypeSelection='liquido'; // default: new liquid style
+let gaugeTypeSelection='liquido';
 function renderRainGauge(dados,pluviPorDia){
   const container=document.getElementById('rain-gauge-container');if(!container)return;
   gaugeTypeSelection=document.getElementById('cal-container')?
-    (document.querySelector('.gauge-type-select')?.value||'liquido'):'liquido';
+    (document.querySelector('.gauge-type-select')?.value||gaugeTypeSelection):gaugeTypeSelection;
   renderRainGaugeInContainer(container,dados,pluviPorDia,gaugeTypeSelection);
 }
 
 function renderRainGaugeInContainer(container,dados,pluviPorDia,type){
   if(type==='barras'){
-    // Classic bar chart
     const chuvaByKey={};
     dados.forEach(d=>{
       const key=periodoAtivo==='hoje'?new Date(d.Date).getHours()+'h':new Date(d.Date).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
@@ -1094,7 +1401,6 @@ function renderRainGaugeInContainer(container,dados,pluviPorDia,type){
     const keys=Object.keys(chuvaByKey),maxCh=Math.max(...Object.values(chuvaByKey),1);
     container.innerHTML='<div class="rain-bars" id="rain-bars">'+keys.slice(-24).map(k=>{const val=chuvaByKey[k],pct=(val/maxCh)*100;return '<div class="rain-bar-wrap">'+(val>0?'<div class="rain-val">'+val.toFixed(1)+'</div>':'<div class="rain-val">&nbsp;</div>')+'<div class="rain-bar" style="height:'+Math.max(pct,2)+'%"></div><div class="rain-label">'+k.split('/')[0]+'</div></div>';}).join('')+'<div class="rain-axis"></div></div>';
   }else{
-    // New mini calendar liquid style (compact daily view)
     const sortedDays=Object.keys(pluviPorDia).sort();const maxMm=Math.max(...Object.values(pluviPorDia),1);
     if(!sortedDays.length){container.innerHTML='<div style="text-align:center;color:var(--muted);padding:20px;font-size:12px">Sem dados de chuva para o período</div>';return;}
     container.innerHTML='<div style="display:flex;gap:4px;align-items:flex-end;padding:8px 4px 4px;overflow-x:auto;min-height:80px;">'+
@@ -1115,7 +1421,8 @@ function renderRainGaugeInContainer(container,dados,pluviPorDia,type){
 }
 
 /* ═══════════════════════════════════════════════════════
-   CALENDÁRIO PLUVIOMÉTRICO — REAL DATA
+   CALENDÁRIO PLUVIOMÉTRICO — JANELA ROLANTE DE 35 DIAS
+   (Dia atual centralizado na 3ª semana, passado atrás, futuro bloqueado à frente)
    ═══════════════════════════════════════════════════════ */
 let calTileElements=[];
 let calRainCanvas=null;
@@ -1125,20 +1432,56 @@ let calRainIntensity=0;
 let calTargetIntensity=0;
 let calRafId=null;
 let calStageEl=null;
-let currentCalMonth=null; // {year, month (0-based)}
+
 let calPluviData={};      // { 'YYYY-MM-DD': mm }
 let calDadosRef=[];
+let calAnchorDateKey='';  // Data de referência máxima ("Hoje" ou última leitura disponível)
+let calWindowOffsetWeeks=0; // 0 = centrado em Hoje; -1 = 1 semana atrás, etc.
+let calSelectedDateKey='';
+
+const MESES_CURTOS=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const MESES_LONGOS=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+function dateToKey(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function keyToDate(k){
+  return new Date(k+'T12:00:00');
+}
+function addDaysToDate(d,days){
+  const r=new Date(d.getTime());
+  r.setDate(r.getDate()+days);
+  return r;
+}
+
+function determinarDataAncora(pluviPorDia){
+  const hojeLocal=dateToKey(new Date());
+  const selPlan=document.getElementById('sel-planilha')?.value||'';
+  const mesAtualPrefix=hojeLocal.slice(0,7);
+
+  // Se o produtor está visualizando a planilha do mês atual (ou se há leitura de hoje), ancora em Hoje
+  if(!selPlan||selPlan===mesAtualPrefix){
+    const chaves=Object.keys(pluviPorDia||{}).sort();
+    if(chaves.length){
+      const ultimaLeituraKey=chaves[chaves.length-1];
+      // Usa a maior data entre a última leitura e hoje local do dispositivo
+      return ultimaLeituraKey>hojeLocal?ultimaLeituraKey:hojeLocal;
+    }
+    return hojeLocal;
+  }
+
+  // Se o produtor escolheu uma planilha histórica no seletor, ancora na última leitura daquela planilha
+  const chavesMes=Object.keys(pluviPorDia||{}).filter(k=>k.startsWith(selPlan)).sort();
+  if(chavesMes.length)return chavesMes[chavesMes.length-1];
+  const todas=Object.keys(pluviPorDia||{}).sort();
+  return todas.length?todas[todas.length-1]:hojeLocal;
+}
 
 function renderCalendario(pluviPorDia,dados){
-  calPluviData=pluviPorDia||{};calDadosRef=dados||[];
-  // Determine which month to show (last data month or current)
-  const datas=Object.keys(pluviPorDia).sort();
-  if(datas.length){
-    const last=datas[datas.length-1];
-    currentCalMonth={year:parseInt(last.slice(0,4)),month:parseInt(last.slice(5,7))-1};
-  }else{
-    const n=new Date();currentCalMonth={year:n.getFullYear(),month:n.getMonth()};
-  }
+  calPluviData=pluviPorDia||{};
+  calDadosRef=dados||[];
+  calAnchorDateKey=determinarDataAncora(calPluviData);
+  calWindowOffsetWeeks=0;
   buildCalendarDOM();
 }
 
@@ -1152,17 +1495,22 @@ function buildCalendarDOM(){
       <div class="cal-inner">
         <div class="cal-topbar">
           <div class="cal-month-nav">
-            <button class="cal-nav-btn" id="cal-prev">❮</button>
+            <button class="cal-nav-btn" id="cal-prev" title="Recuar 1 semana">❮</button>
             <div class="cal-month-label" id="cal-month-lbl">—</div>
-            <button class="cal-nav-btn" id="cal-next">❯</button>
+            <button class="cal-nav-btn" id="cal-next" title="Avançar 1 semana">❯</button>
+            <button class="cal-today-btn" id="cal-today-btn" title="Centralizar no dia atual">Hoje</button>
           </div>
           <div class="gauge-type-wrap">
             <span class="gauge-type-label">Pluviômetro</span>
             <select class="gauge-type-select" id="gauge-type-sel" onchange="onGaugeTypeChange(this.value)">
-              <option value="liquido" selected>💧 Liquid Glass</option>
-              <option value="barras">📊 Barras Clássico</option>
+              <option value="liquido" ${gaugeTypeSelection==='liquido'?'selected':''}>💧 Liquid Glass</option>
+              <option value="barras" ${gaugeTypeSelection==='barras'?'selected':''}>📊 Barras Clássico</option>
             </select>
           </div>
+        </div>
+        <div class="cal-rolling-hint">
+          <span>🎯 <strong>Dia atual centralizado</strong> · Dias passados atrás e dias futuros bloqueados à frente</span>
+          <span id="cal-window-sub">—</span>
         </div>
         <div class="cal-layout">
           <div>
@@ -1178,10 +1526,11 @@ function buildCalendarDOM(){
             <div class="cal-days-grid" id="cal-days-grid"></div>
             <div class="cal-legend">
               <div class="cal-legend-items">
-                <div class="cal-legend-item"><span class="cal-legend-swatch" style="width:10px;height:10px;background:rgba(14,30,46,0.6)"></span><span>Sem chuva</span></div>
+                <div class="cal-legend-item"><span class="cal-legend-swatch" style="width:10px;height:10px;background:rgba(14,30,46,0.6)"></span><span>0mm</span></div>
                 <div class="cal-legend-item"><span class="cal-legend-swatch" style="width:10px;height:10px;background:rgba(0,180,160,0.5)"></span><span>&lt;15mm</span></div>
                 <div class="cal-legend-item"><span class="cal-legend-swatch" style="width:10px;height:10px;background:rgba(0,160,220,0.75)"></span><span>15–45mm</span></div>
                 <div class="cal-legend-item"><span class="cal-legend-swatch" style="width:10px;height:10px;background:rgba(80,130,255,0.9)"></span><span>45mm+</span></div>
+                <div class="cal-legend-item"><span class="cal-legend-swatch future-swatch" style="width:10px;height:10px;"></span><span>Futuro (não existe)</span></div>
               </div>
             </div>
           </div>
@@ -1196,7 +1545,7 @@ function buildCalendarDOM(){
                   <span class="cal-hero-val" id="cal-hero-val">—</span>
                   <span class="cal-hero-unit" id="cal-hero-unit"></span>
                 </div>
-                <div class="cal-insp-desc" id="cal-insp-desc">Clique em um dia do calendário para ver os detalhes de precipitação.</div>
+                <div class="cal-insp-desc" id="cal-insp-desc">Toque em qualquer dia passado ou no dia atual para inspecionar a chuva.</div>
               </div>
               <div class="cal-gauge-box">
                 <div class="cal-gauge-header">
@@ -1212,8 +1561,14 @@ function buildCalendarDOM(){
                 <div class="cal-tele-item"><div class="cal-tele-label">Pressão Méd.</div><div class="cal-tele-val" id="cal-tele-press">—</div></div>
               </div>
               <div class="cal-month-strip">
-                <span>Acumulado no Mês: <strong id="cal-month-total">—</strong></span>
-                <span>Dias c/ Chuva: <strong id="cal-month-rainy">—</strong></span>
+                <div class="cal-strip-row">
+                  <span>Acumulado (dias passados na janela):</span>
+                  <strong id="cal-month-total">—</strong>
+                </div>
+                <div class="cal-strip-row">
+                  <span>Dias c/ Chuva registrados:</span>
+                  <strong id="cal-month-rainy">—</strong>
+                </div>
               </div>
             </div>
           </div>
@@ -1225,68 +1580,139 @@ function buildCalendarDOM(){
   calStageEl=document.getElementById('cal-stage');
   calRainCanvas=document.getElementById('cal-rain-canvas');
   calRainCtx=calRainCanvas.getContext('2d');
-  document.getElementById('cal-prev').addEventListener('click',()=>{if(currentCalMonth.month===0){currentCalMonth={year:currentCalMonth.year-1,month:11};}else{currentCalMonth.month--;}renderCalMonth();});
-  document.getElementById('cal-next').addEventListener('click',()=>{if(currentCalMonth.month===11){currentCalMonth={year:currentCalMonth.year+1,month:0};}else{currentCalMonth.month++;}renderCalMonth();});
+
+  document.getElementById('cal-prev').addEventListener('click',()=>{
+    calWindowOffsetWeeks-=1;
+    renderCalRollingWindow();
+  });
+  document.getElementById('cal-next').addEventListener('click',()=>{
+    if(calWindowOffsetWeeks<0){
+      calWindowOffsetWeeks+=1;
+      renderCalRollingWindow();
+    }
+  });
+  document.getElementById('cal-today-btn').addEventListener('click',()=>{
+    calWindowOffsetWeeks=0;
+    calSelectedDateKey=calAnchorDateKey;
+    renderCalRollingWindow();
+  });
 
   initCalRain();
-  renderCalMonth();
+  renderCalRollingWindow();
   if(calRafId)cancelAnimationFrame(calRafId);
   animateCalRain();
 }
 
 function onGaugeTypeChange(val){
   gaugeTypeSelection=val;
-  // Re-render rain gauge section
   const container=document.getElementById('rain-gauge-container');
-  if(container&&calDadosRef.length){
-    renderRainGaugeInContainer(container,calDadosRef,calPluviData,val);
+  if(container&&dadosAtivos.length){
+    const pluviFiltro={};
+    filtrar(dadosAtivos,dadosCombinados).forEach(d=>{const dia=String(d.Date).slice(0,10);const v=parseFloat(d.Pluvi);if(!isNaN(v))pluviFiltro[dia]=v;});
+    renderRainGaugeInContainer(container,filtrar(dadosAtivos,dadosCombinados),pluviFiltro,val);
   }
-  // Also update day tile style
   document.querySelectorAll('.cal-day-tile').forEach(t=>{
-    if(val==='barras'){t.classList.add('style-bars');}else{t.classList.remove('style-bars');}
+    if(val==='barras')t.classList.add('style-bars');
+    else t.classList.remove('style-bars');
   });
 }
 
-function renderCalMonth(){
-  const {year,month}=currentCalMonth;
-  const monthNames=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  document.getElementById('cal-month-lbl').textContent=monthNames[month]+' '+year;
+function renderCalRollingWindow(){
+  const grid=document.getElementById('cal-days-grid');if(!grid)return;
+  grid.innerHTML='';
+  calTileElements=[];
 
-  const grid=document.getElementById('cal-days-grid');grid.innerHTML='';calTileElements=[];
-  const firstDay=new Date(year,month,1).getDay();
-  const daysInMonth=new Date(year,month+1,0).getDate();
+  const anchorDate=keyToDate(calAnchorDateKey);
+  const centerDate=addDaysToDate(anchorDate,calWindowOffsetWeeks*7);
 
-  // Month totals
-  let monthTotal=0,rainyDays=0;
-  for(let d=1;d<=daysInMonth;d++){
-    const key=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const mm=calPluviData[key]||0;if(mm>0){monthTotal+=mm;rainyDays++;}
+  // Domingo da semana central (linha 3 de 5 -> índice de semana 2)
+  const centerWeekSunday=addDaysToDate(centerDate,-centerDate.getDay());
+  // Início da grade de 35 dias: 2 semanas completas antes do domingo da semana central
+  const startDate=addDaysToDate(centerWeekSunday,-14);
+  const endDate=addDaysToDate(startDate,34);
+
+  // Atualiza cabeçalho de período / meses abrangidos
+  const mIni=MESES_CURTOS[startDate.getMonth()],mFim=MESES_CURTOS[endDate.getMonth()];
+  const yIni=startDate.getFullYear(),yFim=endDate.getFullYear();
+  let labelTopo='';
+  if(mIni===mFim&&yIni===yFim)labelTopo=`${MESES_LONGOS[startDate.getMonth()]} ${yIni}`;
+  else if(yIni===yFim)labelTopo=`${mIni} – ${mFim} ${yFim}`;
+  else labelTopo=`${mIni} ${yIni} – ${mFim} ${yFim}`;
+  document.getElementById('cal-month-lbl').textContent=labelTopo;
+
+  const subEl=document.getElementById('cal-window-sub');
+  if(subEl){
+    subEl.textContent=`${String(startDate.getDate()).padStart(2,'0')}/${String(startDate.getMonth()+1).padStart(2,'0')} a ${String(endDate.getDate()).padStart(2,'0')}/${String(endDate.getMonth()+1).padStart(2,'0')}`;
   }
-  document.getElementById('cal-month-total').textContent=monthTotal.toFixed(1)+' mm';
-  document.getElementById('cal-month-rainy').textContent=rainyDays+' dias';
 
-  // Max rain this month for scaling
-  let maxMm=0;
-  for(let d=1;d<=daysInMonth;d++){
-    const key=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    maxMm=Math.max(maxMm,calPluviData[key]||0);
+  // Botões de navegação: bloqueia avançar além da janela centrada em Hoje
+  const nextBtn=document.getElementById('cal-next');
+  const todayBtn=document.getElementById('cal-today-btn');
+  if(nextBtn)nextBtn.disabled=(calWindowOffsetWeeks>=0);
+  if(todayBtn)todayBtn.classList.toggle('is-centered',calWindowOffsetWeeks===0);
+
+  // Calcula acumulados dos dias válidos (<= calAnchorDateKey) visíveis na janela e máximo p/ escala
+  let windowTotal=0,windowRainyDays=0,maxMm=0,validDaysCount=0;
+  const daysList=[];
+
+  for(let i=0;i<35;i++){
+    const d=addDaysToDate(startDate,i);
+    const key=dateToKey(d);
+    const isFuture=key>calAnchorDateKey;
+    const isToday=key===calAnchorDateKey;
+    const mm=isFuture?0:(calPluviData[key]||0);
+
+    if(!isFuture){
+      validDaysCount++;
+      if(mm>0){windowTotal+=mm;windowRainyDays++;}
+      if(mm>maxMm)maxMm=mm;
+    }
+    daysList.push({d,key,mm,isFuture,isToday,idx:i});
   }
 
-  // Empty cells
-  for(let e=0;e<firstDay;e++){const slot=document.createElement('div');slot.className='cal-day-slot';grid.appendChild(slot);}
+  document.getElementById('cal-month-total').textContent=`${windowTotal.toFixed(1)} mm (${validDaysCount}d)`;
+  document.getElementById('cal-month-rainy').textContent=`${windowRainyDays} ${windowRainyDays===1?'dia':'dias'}`;
 
-  for(let d=1;d<=daysInMonth;d++){
-    const dateKey=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const mm=calPluviData[dateKey]||0;
-    const vis=computeCalTileVisuals(mm,maxMm);
+  let prevMonth=-1;
+
+  daysList.forEach((item,i)=>{
+    const {d,key,mm,isFuture,isToday}=item;
+    const row=Math.floor(i/7);
+    const col=i%7;
     const isBarsStyle=gaugeTypeSelection==='barras';
 
-    const slot=document.createElement('div');slot.className='cal-day-slot';
-    const tile=document.createElement('div');
-    tile.className='cal-day-tile'+(isBarsStyle?' style-bars':'');
-    tile.dataset.dateKey=dateKey;tile.dataset.mm=mm;
+    const slot=document.createElement('div');
+    slot.className='cal-day-slot'+(row===2&&calWindowOffsetWeeks===0?' slot-current-week':'');
 
-    tile.style.setProperty('--size-pct','55%');
+    const tile=document.createElement('div');
+    tile.className='cal-day-tile'
+      +(isBarsStyle?' style-bars':'')
+      +(isToday?' cal-is-today':'')
+      +(isFuture?' cal-future':'');
+    tile.dataset.dateKey=key;
+    tile.dataset.mm=mm;
+
+    // Exibe etiqueta do mês no 1º card da grade ou sempre que o mês vira (ex: 01 Nov)
+    const curMonth=d.getMonth();
+    const showMonthTag=(i===0||curMonth!==prevMonth);
+    prevMonth=curMonth;
+    const monthTagHTML=showMonthTag?`<span class="cal-day-month-tag">${MESES_CURTOS[curMonth]}</span>`:'';
+    const todayPillHTML=isToday?`<span class="cal-today-pill">HOJE</span>`:'';
+
+    if(isFuture){
+      tile.title='Data futura — ainda não registrada';
+      tile.setAttribute('aria-disabled','true');
+      tile.innerHTML=
+        monthTagHTML+
+        `<span class="cal-day-num">${String(d.getDate()).padStart(2,'0')}</span>`+
+        `<span class="cal-day-mm">—</span>`;
+      slot.appendChild(tile);
+      grid.appendChild(slot);
+      return;
+    }
+
+    const vis=computeCalTileVisuals(mm,maxMm);
+    tile.style.setProperty('--size-pct','58%');
     tile.style.setProperty('--tile-radius',vis.radius+'px');
     tile.style.setProperty('--tile-bg',vis.bg);
     tile.style.setProperty('--tile-border',vis.border);
@@ -1301,46 +1727,51 @@ function renderCalMonth(){
       '<div class="cal-liquid-fill"></div>'+
       '<div class="cal-bar-fill"></div>'+
       '<div class="cal-tile-drops"></div>'+
-      '<span class="cal-day-num">'+d+'</span>'+
-      '<span class="cal-day-mm">'+(mm>0?mm.toFixed(1)+'mm':'')+'</span>';
+      monthTagHTML+
+      todayPillHTML+
+      `<span class="cal-day-num">${String(d.getDate()).padStart(2,'0')}</span>`+
+      `<span class="cal-day-mm">${mm>0?mm.toFixed(1)+'mm':(isToday?'0mm':'')}</span>`;
 
-    slot.appendChild(tile);grid.appendChild(slot);
+    slot.appendChild(tile);
+    grid.appendChild(slot);
 
-    const cellIdx=firstDay+(d-1);
-    const row=Math.floor(cellIdx/7);const col=cellIdx%7;
-    const tRef={el:tile,mm,dateKey,row,col};
+    const tRef={el:tile,mm,dateKey:key,row,col,isFuture:false};
     calTileElements.push(tRef);
 
-    const delay=(d-1)*12;
+    const delay=i*8;
     setTimeout(()=>{
       tile.style.setProperty('--size-pct',vis.sizePct+'%');
       tile.style.setProperty('--water-level',vis.waterLevel+'%');
       tile.style.setProperty('--bar-h',vis.waterLevel+'%');
     },delay);
 
-    tile.addEventListener('pointerenter',()=>{applyCalRepulsion(tRef);selectCalDay(dateKey,mm);});
-    tile.addEventListener('click',()=>selectCalDay(dateKey,mm));
+    tile.addEventListener('pointerenter',()=>{applyCalRepulsion(tRef);selectCalDay(key,mm);});
+    tile.addEventListener('click',()=>selectCalDay(key,mm));
+  });
+
+  grid.onpointerleave=resetCalRepulsion;
+
+  // Seleciona automaticamente o dia atual (Hoje) ou o último dia válido da janela
+  const targetKey=(calSelectedDateKey&&calSelectedDateKey<=calAnchorDateKey&&daysList.some(x=>x.key===calSelectedDateKey))
+    ?calSelectedDateKey
+    :(daysList.some(x=>x.key===calAnchorDateKey)?calAnchorDateKey:daysList.filter(x=>!x.isFuture).slice(-1)[0]?.key);
+
+  if(targetKey){
+    const mmSel=calPluviData[targetKey]||0;
+    selectCalDay(targetKey,mmSel);
   }
 
-  grid.addEventListener('pointerleave',resetCalRepulsion);
-
-  // Auto-select most rainy day or today
-  let bestKey=null,bestMm=-1;
-  for(let d=1;d<=daysInMonth;d++){
-    const k=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const mm=calPluviData[k]||0;if(mm>bestMm){bestMm=mm;bestKey=k;}
+  if(calStageEl&&calRainCanvas){
+    calRainCanvas.width=calStageEl.clientWidth;
+    calRainCanvas.height=calStageEl.clientHeight;
   }
-  if(bestKey)selectCalDay(bestKey,bestMm);
-
-  // Resize canvas
-  if(calStageEl&&calRainCanvas){calRainCanvas.width=calStageEl.clientWidth;calRainCanvas.height=calStageEl.clientHeight;}
 }
 
 function computeCalTileVisuals(mm,maxMm){
-  if(mm<=0){return{sizePct:72,radius:12,bg:'rgba(14,30,46,0.55)',border:'rgba(255,255,255,0.07)',shadow:'0 3px 8px rgba(0,0,0,0.25)',waterLevel:0,liquidGrad:'transparent',numSize:'.78rem',mmOpacity:0,dropletOpacity:0};}
+  if(mm<=0){return{sizePct:74,radius:12,bg:'rgba(14,30,46,0.55)',border:'rgba(255,255,255,0.07)',shadow:'0 3px 8px rgba(0,0,0,0.25)',waterLevel:0,liquidGrad:'transparent',numSize:'.78rem',mmOpacity:0.75,dropletOpacity:0};}
   const refMax=Math.max(maxMm,80);
   const norm=Math.min(1,Math.pow(mm/refMax,0.6));
-  const sizePct=Math.round(78+norm*22);const radius=Math.round(12+norm*6);const waterLevel=Math.round(20+norm*80);
+  const sizePct=Math.round(78+norm*20);const radius=Math.round(12+norm*6);const waterLevel=Math.round(22+norm*78);
   let bg,border,shadow,liquidGrad;
   if(mm<15){bg='rgba(0,100,120,0.35)';border='rgba(0,200,180,0.35)';shadow='0 5px 12px rgba(0,180,160,0.2)';liquidGrad='linear-gradient(180deg,rgba(0,229,176,0.4),rgba(0,180,140,0.65))';}
   else if(mm<45){bg='rgba(0,80,160,0.45)';border='rgba(0,180,220,0.6)';shadow='0 8px 18px rgba(0,160,220,0.35)';liquidGrad='linear-gradient(180deg,rgba(0,200,230,0.65),rgba(0,140,200,0.88))';}
@@ -1350,21 +1781,23 @@ function computeCalTileVisuals(mm,maxMm){
 
 function applyCalRepulsion(hovered){
   calTileElements.forEach(item=>{
-    if(item===hovered){item.el.style.setProperty('--hover-scale','1.1');item.el.style.setProperty('--push-x','0px');item.el.style.setProperty('--push-y','0px');return;}
+    if(item===hovered){item.el.style.setProperty('--hover-scale','1.09');item.el.style.setProperty('--push-x','0px');item.el.style.setProperty('--push-y','0px');return;}
     const dCol=item.col-hovered.col,dRow=item.row-hovered.row,dist=Math.hypot(dCol,dRow);
-    if(dist>0&&dist<=1.8){const force=(2-dist)*4;item.el.style.setProperty('--push-x',(dCol/dist*force).toFixed(1)+'px');item.el.style.setProperty('--push-y',(dRow/dist*force).toFixed(1)+'px');item.el.style.setProperty('--hover-scale','0.96');}
+    if(dist>0&&dist<=1.8){const force=(2-dist)*3.5;item.el.style.setProperty('--push-x',(dCol/dist*force).toFixed(1)+'px');item.el.style.setProperty('--push-y',(dRow/dist*force).toFixed(1)+'px');item.el.style.setProperty('--hover-scale','0.96');}
     else{item.el.style.setProperty('--push-x','0px');item.el.style.setProperty('--push-y','0px');item.el.style.setProperty('--hover-scale','1');}
   });
 }
 function resetCalRepulsion(){calTileElements.forEach(t=>{t.el.style.setProperty('--push-x','0px');t.el.style.setProperty('--push-y','0px');t.el.style.setProperty('--hover-scale','1');});}
 
 function selectCalDay(dateKey,mm){
+  if(dateKey>calAnchorDateKey)return; // Nunca seleciona datas futuras
+  calSelectedDateKey=dateKey;
   calTileElements.forEach(t=>t.el.classList.toggle('cal-selected',t.dateKey===dateKey));
-  const d=new Date(dateKey+'T12:00:00');
-  const monthNames=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  document.getElementById('cal-insp-date').textContent=`DIA ${String(d.getDate()).padStart(2,'0')} • ${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+  const d=keyToDate(dateKey);
+  const ehHoje=(dateKey===calAnchorDateKey);
+  document.getElementById('cal-insp-date').textContent=`${ehHoje?'HOJE · ':''}DIA ${String(d.getDate()).padStart(2,'0')} • ${MESES_CURTOS[d.getMonth()]} ${d.getFullYear()}`;
   document.getElementById('cal-hero-val').textContent=mm>0?mm.toFixed(1):'0';
-  document.getElementById('cal-hero-unit').textContent=mm>0?'mm':'';
+  document.getElementById('cal-hero-unit').textContent='mm';
 
   const statusEl=document.getElementById('cal-insp-status');
   const descEl=document.getElementById('cal-insp-desc');
@@ -1373,20 +1806,20 @@ function selectCalDay(dateKey,mm){
   document.getElementById('cal-gauge-fill').style.width=gaugePct+'%';
 
   if(mm===0){
-    statusEl.innerHTML='☀️ Sem Chuva';descEl.textContent='Nenhuma precipitação registrada neste dia.';
+    statusEl.innerHTML='☀️ Sem Chuva';descEl.textContent='Nenhuma precipitação registrada pela estação nesta data.';
     calTargetIntensity=0;if(calStageEl){calStageEl.classList.add('cal-sunny');calStageEl.classList.remove('cal-rainy');}
   }else if(mm<15){
-    statusEl.innerHTML='🌦️ Chuva Leve';descEl.textContent='Precipitação leve. Favorável à absorção gradual do solo.';
+    statusEl.innerHTML='🌦️ Chuva Leve';descEl.textContent='Precipitação leve registrada. Favorável à manutenção da umidade superficial do solo.';
     calTargetIntensity=0.3;if(calStageEl){calStageEl.classList.remove('cal-sunny');calStageEl.classList.add('cal-rainy');}
   }else if(mm<45){
-    statusEl.innerHTML='🌧️ Chuva Expressiva';descEl.textContent='Volume hídrico elevado registrado pelos sensores locais.';
+    statusEl.innerHTML='🌧️ Chuva Expressiva';descEl.textContent='Bom volume hídrico acumulado nas leituras da estação.';
     calTargetIntensity=0.65;if(calStageEl){calStageEl.classList.remove('cal-sunny');calStageEl.classList.add('cal-rainy');}
   }else{
-    statusEl.innerHTML='⛈️ Tempestade';descEl.textContent='Evento de alta intensidade pluviométrica. Alerta da estação ativo.';
+    statusEl.innerHTML='⛈️ Chuva Intensa';descEl.textContent='Volume elevado de precipitação diária. Monitore a saturação do solo.';
     calTargetIntensity=1.0;if(calStageEl){calStageEl.classList.remove('cal-sunny');calStageEl.classList.add('cal-rainy');}
   }
 
-  // Real station data for the selected day
+  // Telemetria real da estação para a data selecionada (incluindo dias do mês anterior)
   const dayData=calDadosRef.filter(r=>String(r.Date).slice(0,10)===dateKey);
   if(dayData.length){
     const tmins=dayData.map(r=>filterTemp(r.TempAr)).filter(isFinite);
